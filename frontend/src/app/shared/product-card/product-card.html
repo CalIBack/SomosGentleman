@@ -1,0 +1,16 @@
+<a [routerLink]="['/productos', producto?.id]" class="card-link">
+  <article class="product-card">
+    <div class="card-image-wrapper">
+      <img [src]="getImagenUrl()" [alt]="producto?.nombre">
+      <span class="sale-badge" *ngIf="!esGrupo && tieneDescuento">{{ textoDescuento }}</span>
+    </div>
+    <div class="card-info">
+      <h3 class="product-name">{{ producto?.nombre }}</h3>
+      <div class="price-block">
+        <span class="desde-label" *ngIf="esGrupo">Desde</span>
+        <p class="product-price-old" *ngIf="mostrarDescuento">${{ precioOriginalMostrado | number:'1.0-0' }}</p>
+        <p class="product-price">${{ precioMostrado | number:'1.0-0' }}</p>
+      </div>
+    </div>
+  </article>
+</a>

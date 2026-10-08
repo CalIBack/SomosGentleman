@@ -1,0 +1,185 @@
+<section class="contact-container">
+
+  <!-- ENCABEZADO -->
+  <header class="contact-hero">
+    <h1 class="hero-title">Agendá tu cita</h1>
+    <p class="hero-subtitle">La pieza correcta no se compra apurado.</p>
+  </header>
+
+  <!-- FORMULARIO DE CITA -->
+  <section class="booking-section">
+
+    <!-- TIPO DE CITA -->
+    <div class="tipo-selector">
+      <button 
+        class="tipo-btn" 
+        [class.active]="cita.tipo === 'visita'"
+        (click)="seleccionarTipo('visita')">
+        Visita al showroom
+      </button>
+      <button 
+        class="tipo-btn" 
+        [class.active]="cita.tipo === 'sastreria_medida'"
+        (click)="seleccionarTipo('sastreria_medida')">
+        Sastrería a medida
+      </button>
+    </div>
+
+    <!-- BLOQUE PROMOCIONAL SEGÚN TIPO -->
+    <div class="promo-block">
+      <div class="promo-images">
+        <img *ngFor="let img of infoTipo.imagenes" [src]="img" [alt]="infoTipo.titulo">
+      </div>
+      <div class="promo-text">
+        <h2 class="promo-title">{{ infoTipo.titulo }}</h2>
+        <p class="promo-desc">{{ infoTipo.texto }}</p>
+        <ul class="promo-points">
+          <li *ngFor="let p of infoTipo.puntos">{{ p }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CALENDARIO + HORARIOS -->
+    <div class="picker-grid">
+
+      <div class="calendar">
+        <div class="calendar-head">
+          <button class="nav-btn" (click)="mesAnterior()" [disabled]="!puedeRetroceder" aria-label="Mes anterior">‹</button>
+          <span class="calendar-label">{{ etiquetaMes }}</span>
+          <button class="nav-btn" (click)="mesSiguiente()" aria-label="Mes siguiente">›</button>
+        </div>
+
+        <div class="weekdays">
+          <span *ngFor="let d of nombresDias">{{ d }}</span>
+        </div>
+
+        <div class="days-grid" [class.loading]="cargandoMes">
+          <ng-container *ngFor="let c of celdas">
+            <span *ngIf="c.dia === 0" class="day empty"></span>
+            <button 
+              *ngIf="c.dia > 0"
+              class="day"
+              [class.active]="c.fecha === fechaSeleccionada"
+              [class.today]="c.esHoy"
+              [class.full]="c.lleno"
+              [disabled]="!c.habilitado"
+              (click)="seleccionarDia(c)">
+              {{ c.dia }}
+            </button>
+          </ng-container>
+        </div>
+
+        <p class="calendar-note">Atendemos de 9 a 18 hs. Cada turno dura una hora.</p>
+        <p class="agenda-error" *ngIf="errorAgenda">{{ errorAgenda }}</p>
+      </div>
+
+      <div class="slots">
+        <span class="field-label">Horario</span>
+
+        <p class="slots-empty" *ngIf="!fechaSeleccionada">
+          Elegí primero un día en el calendario.
+        </p>
+
+        <p class="slots-empty" *ngIf="fechaSeleccionada && cargandoDia">
+          Consultando disponibilidad...
+        </p>
+
+        <div class="slots-list" *ngIf="fechaSeleccionada && !cargandoDia">
+          <button 
+            *ngFor="let h of horariosBase"
+            class="slot-btn"
+            [class.active]="h === horaSeleccionada"
+            [disabled]="!horaDisponible(h)"
+            (click)="seleccionarHora(h)">
+            {{ h }}
+          </button>
+        </div>
+
+        <p class="slots-selected" *ngIf="horaSeleccionada">
+          {{ fechaLegible }} — {{ horaSeleccionada }} hs
+        </p>
+      </div>
+    </div>
+
+    <!-- DATOS DE CONTACTO -->
+    <div class="form-grid">
+      <div class="field">
+        <label class="field-label" for="cita-nombre">Nombre y apellido *</label>
+        <input id="cita-nombre" type="text" [(ngModel)]="cita.nombre_contacto" placeholder="Tu nombre">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="cita-email">Email *</label>
+        <input id="cita-email" type="email" [(ngModel)]="cita.email_contacto" placeholder="tu@email.com">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="cita-tel">Teléfono *</label>
+        <input id="cita-tel" type="tel" [(ngModel)]="cita.telefono_contacto" placeholder="11 2233 4455">
+      </div>
+
+      <div class="field full">
+        <label class="field-label" for="cita-notas">Aclaraciones</label>
+        <textarea id="cita-notas" rows="3" [(ngModel)]="cita.aclaraciones" 
+          placeholder="Contanos el motivo de tu visita: un casamiento, un evento, una prenda puntual..."></textarea>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <button class="btn-reservar" [disabled]="enviandoCita || !puedeReservar" (click)="reservar()">
+        {{ enviandoCita ? 'Reservando...' : 'Confirmar turno' }}
+      </button>
+    </div>
+
+    <p class="feedback ok" *ngIf="citaOk">{{ citaOk }}</p>
+    <p class="feedback error" *ngIf="citaError">{{ citaError }}</p>
+
+  </section>
+
+  <!-- CONSULTA POR MAIL -->
+  <section class="query-section" id="consulta">
+    <div class="query-intro">
+      <h2 class="query-title">¿Preferís escribirnos?</h2>
+      <p class="query-desc">Para dudas sobre talles, telas, envíos o cualquier otra cosa que no requiera una visita.</p>
+      <p class="query-mail">{{ emailContacto }}</p>
+    </div>
+
+    <div class="query-form">
+      <div class="form-grid">
+        <div class="field">
+          <label class="field-label" for="q-nombre">Nombre *</label>
+          <input id="q-nombre" type="text" [(ngModel)]="consulta.nombre" placeholder="Tu nombre">
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="q-email">Email *</label>
+          <input id="q-email" type="email" [(ngModel)]="consulta.email" placeholder="tu@email.com">
+        </div>
+
+        <div class="field full">
+          <label class="field-label" for="q-asunto">Asunto</label>
+          <input id="q-asunto" type="text" [(ngModel)]="consulta.asunto" placeholder="Sobre qué nos escribís">
+        </div>
+
+        <div class="field full">
+          <label class="field-label" for="q-msg">Mensaje *</label>
+          <textarea id="q-msg" rows="4" [(ngModel)]="consulta.mensaje" placeholder="Escribinos..."></textarea>
+        </div>
+      </div>
+
+      <div class="submit-row">
+        <button class="btn-consulta" (click)="enviarConsulta()">Enviar consulta</button>
+      </div>
+
+      <p class="feedback error" *ngIf="consultaError">{{ consultaError }}</p>
+    </div>
+  </section>
+
+  <!-- BOTÓN FLOTANTE DE WHATSAPP -->
+  <a class="wsp-float" [href]="whatsappUrl" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26">
+      <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35zM12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01c-1.52 0-3.01-.41-4.31-1.18l-.31-.18-3.2.84.85-3.12-.2-.32a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.25 8.23z"/>
+    </svg>
+  </a>
+
+</section>

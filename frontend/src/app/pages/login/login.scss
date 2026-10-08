@@ -1,0 +1,201 @@
+.auth-container {
+  background-color: var(--color-black);
+  color: var(--color-white);
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 5%;
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 430px;
+  border: 1px solid rgba(197, 175, 100, 0.25);
+  padding: 2.5rem 2.2rem;
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
+/* ===== ENCABEZADO ===== */
+.auth-header {
+  margin-bottom: 2rem;
+
+  /* Sello técnico inclinado, mismo recurso que el detalle de producto */
+  .auth-tag {
+    display: inline-block;
+    font-family: var(--font-main);
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    color: var(--color-gold);
+    border: 1px solid rgba(197, 175, 100, 0.4);
+    padding: 0.25rem 0.6rem;
+    margin-bottom: 1rem;
+    transform: rotate(-2deg);
+    transform-origin: left center;
+  }
+
+  .auth-title {
+    font-family: var(--font-title);
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.1;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .auth-subtitle {
+    font-family: var(--font-title);
+    font-style: italic;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+    display: inline-block;
+    transform: rotate(-1deg);
+    transform-origin: left center;
+  }
+}
+
+/* ===== PESTAÑAS ===== */
+.auth-tabs {
+  display: flex;
+  gap: 1.8rem;
+  margin-bottom: 1.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  button {
+    background: transparent;
+    border: none;
+    padding: 0 0 0.7rem 0;
+    font-family: var(--font-main);
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.3s ease;
+
+    &:hover { color: rgba(255, 255, 255, 0.75); }
+
+    &.active {
+      color: var(--color-gold);
+      border-bottom-color: var(--color-gold);
+    }
+  }
+}
+
+/* ===== FORMULARIO ===== */
+.auth-form {
+  .field { margin-bottom: 1.4rem; }
+
+  .field-label {
+    display: block;
+    font-family: var(--font-main);
+    font-size: 0.62rem;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    margin-bottom: 0.6rem;
+  }
+
+  input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    color: var(--color-white);
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    padding: 0.55rem 0;
+    outline: none;
+    transition: border-color 0.3s ease;
+
+    &::placeholder { color: rgba(255, 255, 255, 0.22); }
+    &:focus { border-bottom-color: var(--color-gold); }
+  }
+}
+
+.btn-auth {
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.95rem 2rem;
+  background-color: var(--color-white);
+  color: var(--color-black);
+  border: none;
+  font-family: var(--font-main);
+  font-size: 0.78rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-gold);
+    color: var(--color-white);
+  }
+
+  &:disabled {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+  }
+}
+
+.auth-switch {
+  font-family: var(--font-main);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 1.4rem 0 0 0;
+  text-align: center;
+
+  .link-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-gold);
+    font-family: var(--font-main);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover { color: var(--color-white); }
+  }
+}
+
+.auth-feedback {
+  font-family: var(--font-main);
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  margin: 1.2rem 0 0 0;
+  text-align: center;
+
+  &.ok { color: var(--color-gold); }
+  &.error { color: #c46a6a; }
+}
+
+.auth-back {
+  display: block;
+  margin-top: 2rem;
+  text-align: center;
+  font-family: var(--font-main);
+  font-size: 0.68rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  text-decoration: none;
+  transition: color 0.3s ease;
+
+  &:hover { color: var(--color-gold); }
+}
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 640px) {
+  .auth-panel {
+    border: none;
+    padding: 1.5rem 0;
+  }
+
+  .auth-header .auth-title { font-size: 1.7rem; }
+}

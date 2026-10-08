@@ -1,0 +1,81 @@
+<section class="auth-container">
+
+  <div class="auth-panel">
+
+    <header class="auth-header">
+      <span class="auth-tag">ACCESO // SOMOS GENTLEMAN</span>
+      <h1 class="auth-title">{{ modo === 'ingresar' ? 'Bienvenido de vuelta' : 'Creá tu cuenta' }}</h1>
+      <p class="auth-subtitle">
+        {{ modo === 'ingresar'
+            ? 'Tus pedidos, tus lookbooks, tu guardarropa.'
+            : 'Para guardar tus lookbooks y seguir tus pedidos.' }}
+      </p>
+    </header>
+
+    <nav class="auth-tabs">
+      <button [class.active]="modo === 'ingresar'" (click)="cambiarModo('ingresar')">Ingresar</button>
+      <button [class.active]="modo === 'registrar'" (click)="cambiarModo('registrar')">Registrarme</button>
+    </nav>
+
+    <!-- INGRESO -->
+    <div class="auth-form" *ngIf="modo === 'ingresar'">
+      <div class="field">
+        <label class="field-label" for="login-email">Email</label>
+        <input id="login-email" type="email" [(ngModel)]="email" (keyup.enter)="ingresar()" placeholder="tu@email.com">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="login-pass">Contraseña</label>
+        <input id="login-pass" type="password" [(ngModel)]="password" (keyup.enter)="ingresar()" placeholder="••••••••">
+      </div>
+
+      <button class="btn-auth" [disabled]="procesando" (click)="ingresar()">
+        {{ procesando ? 'Ingresando...' : 'Ingresar' }}
+      </button>
+
+      <p class="auth-switch">
+        ¿Todavía no tenés cuenta?
+        <button class="link-btn" (click)="cambiarModo('registrar')">Registrate</button>
+      </p>
+    </div>
+
+    <!-- REGISTRO -->
+    <div class="auth-form" *ngIf="modo === 'registrar'">
+      <div class="field">
+        <label class="field-label" for="reg-nombre">Nombre y apellido</label>
+        <input id="reg-nombre" type="text" [(ngModel)]="regNombre" placeholder="Tu nombre">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="reg-email">Email</label>
+        <input id="reg-email" type="email" [(ngModel)]="regEmail" placeholder="tu@email.com">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="reg-pass">Contraseña</label>
+        <input id="reg-pass" type="password" [(ngModel)]="regPassword" placeholder="Mínimo 6 caracteres">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="reg-pass2">Repetir contraseña</label>
+        <input id="reg-pass2" type="password" [(ngModel)]="regPassword2" (keyup.enter)="registrar()" placeholder="••••••••">
+      </div>
+
+      <button class="btn-auth" [disabled]="procesando" (click)="registrar()">
+        {{ procesando ? 'Creando cuenta...' : 'Crear cuenta' }}
+      </button>
+
+      <p class="auth-switch">
+        ¿Ya tenés cuenta?
+        <button class="link-btn" (click)="cambiarModo('ingresar')">Ingresá</button>
+      </p>
+    </div>
+
+    <p class="auth-feedback error" *ngIf="error">{{ error }}</p>
+    <p class="auth-feedback ok" *ngIf="aviso">{{ aviso }}</p>
+
+    <a routerLink="/" class="auth-back">‹ Volver al inicio</a>
+
+  </div>
+
+</section>

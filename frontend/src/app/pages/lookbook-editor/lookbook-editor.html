@@ -1,0 +1,162 @@
+<section class="editor">
+
+  <header class="editor-cabecera">
+    <a routerLink="/lookbooks" [queryParams]="{ vista: 'mios' }" class="volver">‹ Mis lookbooks</a>
+    <span class="sello">{{ id() ? 'EDITANDO' : 'NUEVO' }} // LOOKBOOK</span>
+    <input
+      class="titulo-input"
+      type="text"
+      maxlength="100"
+      placeholder="Ponele un título a tu look"
+      [ngModel]="titulo()"
+      (ngModelChange)="titulo.set($event)">
+  </header>
+
+  @if (cargando()) {
+    <p class="cargando">Cargando lookbook…</p>
+  } @else {
+    <div class="editor-cuerpo">
+
+      <!-- ===== LIENZO ===== -->
+      <div class="lienzo">
+        <div class="barra">
+          <div class="dispositivos" role="group" aria-label="Previsualizar en">
+            <span class="etiqueta">Ver como en</span>
+            @for (d of dispositivos; track d.valor) {
+              <button
+                type="button"
+                [class.activa]="dispositivo() === d.valor"
+                (click)="dispositivo.set(d.valor)">{{ d.etiqueta }}</button>
+            }
+          </div>
+
+          <button type="button" class="btn-agregar" (click)="selector.click()" [disabled]="fotos().length >= maxFotos">
+            + Agregar fotos
+          </button>
+          <input
+            #selector
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            hidden
+            (change)="alElegirArchivos($event)">
+        </div>
+
+        <p class="ayuda">
+          Arrastrá una foto para cambiarla de lugar · Usá la esquina dorada para elegir su tamaño (25% a 100% del ancho) ·
+          Las columnas se adaptan solas: 4 en compu, 3 en tablet, 2 en celular
+        </p>
+
+        <!-- La vista previa fija las columnas de cada aparato y, en tablet y
+             celular, también achica el lienzo a su ancho típico -->
+        <div class="marco" [attr.data-dispositivo]="dispositivo()">
+          <app-lookbook-grid
+            [(fotos)]="fotos"
+            [columnasFijas]="columnasVista()"
+            [editable]="true"
+            (archivosSoltados)="agregarArchivos($event)" />
+        </div>
+      </div>
+
+      <!-- ===== PANEL ===== -->
+      <aside class="panel">
+
+        <div class="bloque">
+          <span class="bloque-titulo">Visibilidad</span>
+          <div class="interruptor">
+            <button type="button" [class.activo]="!publico()" (click)="publico.set(false)">Privado</button>
+            <button type="button" [class.activo]="publico()" (click)="publico.set(true)">Público</button>
+          </div>
+          <p class="bloque-nota">
+            {{ publico()
+                ? 'Aparece en la galería de la comunidad. Tus notas de medidas siguen siendo privadas.'
+                : 'Solo lo ven vos y las personas con quienes lo compartas.' }}
+          </p>
+        </div>
+
+        <div class="bloque">
+          <label class="bloque-titulo" for="notas">Notas de medidas</label>
+          <textarea
+            id="notas"
+            rows="4"
+            placeholder="Ej: hombros 46 cm, quiero el saco un poco más corto…"
+            [ngModel]="notas()"
+            (ngModelChange)="notas.set($event)"></textarea>
+          <p class="bloque-nota">Privadas: nunca aparecen en la galería pública.</p>
+        </div>
+
+        <div class="acciones">
+          <button type="button" class="btn-guardar" [disabled]="!puedeGuardar()" (click)="guardar()">
+            @if (guardando()) { Guardando… }
+            @else if (subiendo() > 0) { Subiendo {{ subiendo() }} foto{{ subiendo() > 1 ? 's' : '' }}… }
+            @else { {{ id() ? 'Guardar cambios' : 'Crear lookbook' }} }
+          </button>
+
+          <span class="estado" [class.pendiente]="hayCambios()">
+            {{ hayCambios() ? 'Cambios sin guardar' : (id() ? 'Todo guardado' : '') }}
+          </span>
+
+          @if (!titulo().trim() || fotos().length === 0) {
+            <p class="bloque-nota">Necesitás un título y al menos una foto para guardar.</p>
+          }
+
+          @if (error()) { <p class="feedback error">{{ error() }}</p> }
+          @if (aviso()) { <p class="feedback ok">{{ aviso() }}</p> }
+
+          @if (id()) {
+            <div class="acciones-secundarias">
+              <a [routerLink]="['/lookbooks', id()]">Ver como queda</a>
+              <button type="button" class="link-peligro" (click)="eliminar()">Eliminar</button>
+            </div>
+          }
+        </div>
+
+        <!-- ===== COMPARTIR ===== -->
+        <div class="bloque compartir">
+          <span class="bloque-titulo">Compartir</span>
+
+          @if (!id()) {
+            <p class="bloque-nota">Guardá el lookbook para poder compartirlo con otros usuarios.</p>
+          } @else {
+            <input
+              type="search"
+              class="buscador"
+              placeholder="Buscar por nombre o email exacto"
+              [ngModel]="busqueda()"
+              (ngModelChange)="buscar($event)">
+
+            @if (resultadosFiltrados().length) {
+              <ul class="lista-usuarios resultados">
+                @for (u of resultadosFiltrados(); track u.id) {
+                  <li>
+                    <span class="avatar">{{ iniciales(u.nombre_completo) }}</span>
+                    <span class="nombre">{{ u.nombre_completo }}</span>
+                    <button type="button" class="btn-mini" (click)="compartirCon(u)">Compartir</button>
+                  </li>
+                }
+              </ul>
+            } @else if (busqueda().trim().length >= 2) {
+              <p class="bloque-nota">No encontramos usuarios con ese dato.</p>
+            }
+
+            @if (compartidos().length) {
+              <span class="subtitulo">Lo pueden ver</span>
+              <ul class="lista-usuarios">
+                @for (c of compartidos(); track c.id) {
+                  <li>
+                    <span class="avatar">{{ iniciales(c.nombre_completo) }}</span>
+                    <span class="nombre">{{ c.nombre_completo }}</span>
+                    <button type="button" class="btn-mini quitar" (click)="dejarDeCompartir(c)">Quitar</button>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="bloque-nota">Todavía no lo compartiste con nadie.</p>
+            }
+          }
+        </div>
+
+      </aside>
+    </div>
+  }
+</section>

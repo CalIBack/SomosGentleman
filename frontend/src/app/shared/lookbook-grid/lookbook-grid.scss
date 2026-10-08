@@ -1,0 +1,251 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.grilla {
+  position: relative;
+  width: 100%;
+  user-select: none;
+  transition: height 0.25s ease;
+
+  &.recibiendo {
+    outline: 1px dashed var(--color-gold);
+    outline-offset: 6px;
+    background-color: rgba(197, 175, 100, 0.04);
+  }
+}
+
+/* ===== FOTOS ===== */
+.foto {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  overflow: hidden;
+  background-color: #141414;
+  // Las fotos que se corren se deslizan en vez de saltar
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 0.2s ease,
+    height 0.2s ease;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    // cover nunca deforma: si la foto no tiene la forma de la celda, recorta
+    object-fit: cover;
+    pointer-events: none;
+  }
+}
+
+// Modo lectura: clic para ver la foto completa
+.grilla:not(.editable):not(.miniatura) .foto {
+  cursor: zoom-in;
+
+  img { transition: transform 0.5s ease; }
+  &:hover img { transform: scale(1.03); }
+}
+
+.miniatura .foto { pointer-events: none; }
+
+/* ===== EDICIÓN ===== */
+.editable .foto {
+  cursor: grab;
+  // Evita que en el celular el gesto de arrastrar desplace la página
+  touch-action: none;
+
+  &:hover .quitar,
+  &:hover .tirador { opacity: 1; }
+}
+
+.foto.arrastrando {
+  z-index: 10;
+  cursor: grabbing;
+  transition: width 0.2s ease, height 0.2s ease; // sigue al puntero sin demora
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65);
+  outline: 1px solid var(--color-gold);
+}
+
+// Mientras se arrastra, ninguna otra foto muestra sus controles
+.con-arrastre .foto:not(.arrastrando) {
+  .quitar, .tirador { opacity: 0 !important; }
+}
+
+.destino {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 1px dashed var(--color-gold);
+  background-color: rgba(197, 175, 100, 0.08);
+  transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
+  pointer-events: none;
+}
+
+.quitar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: var(--color-white);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+
+  &:hover { background-color: #8e3b3b; }
+}
+
+// Tirador de la esquina: una escuadra dorada
+.tirador {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 26px;
+  height: 26px;
+  cursor: nwse-resize;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid var(--color-gold);
+    border-bottom: 2px solid var(--color-gold);
+  }
+}
+
+// En pantallas táctiles no hay hover: los controles quedan siempre visibles
+@media (hover: none) {
+  .editable .foto {
+    .quitar, .tirador { opacity: 1; }
+  }
+}
+
+// Etiqueta con el tamaño mientras se agranda, ej: "50% · 2 filas"
+.medida {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 0.3rem 0.55rem;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(197, 175, 100, 0.6);
+  font-family: var(--font-main);
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  color: var(--color-gold);
+  pointer-events: none;
+}
+
+/* ===== SUBIENDO ===== */
+.foto.subiendo img {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.estado-subida {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-main);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  animation: latido 1.4s ease-in-out infinite;
+}
+
+@keyframes latido {
+  50% { opacity: 0.4; }
+}
+
+/* ===== GRILLA VACÍA ===== */
+.vacio {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+
+  .vacio-titulo {
+    font-family: var(--font-title);
+    font-style: italic;
+    font-size: 1.4rem;
+    color: rgba(255, 255, 255, 0.7);
+    transform: rotate(-2deg);
+  }
+
+  .vacio-texto {
+    font-family: var(--font-main);
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+/* ===== VISOR ===== */
+.visor {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 5%;
+  background-color: rgba(0, 0, 0, 0.93);
+  cursor: zoom-out;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; // acá se ve la foto entera, sin recortar
+    cursor: default;
+  }
+}
+
+.visor-cerrar,
+.visor-flecha {
+  position: absolute;
+  border: none;
+  background: transparent;
+  color: var(--color-white);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, color 0.2s ease;
+
+  &:hover { opacity: 1; color: var(--color-gold); }
+}
+
+.visor-cerrar {
+  top: 1rem;
+  right: 1.5rem;
+  font-size: 2.2rem;
+}
+
+.visor-flecha {
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 3rem;
+  padding: 1rem;
+
+  &.izquierda { left: 0.5rem; }
+  &.derecha { right: 0.5rem; }
+}

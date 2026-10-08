@@ -1,0 +1,182 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+
+  .navbar-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.logo {
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-main);
+  line-height: 1;
+
+  .somos {
+    font-size: 0.6rem;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    margin-bottom: 2px;
+  }
+
+  .gentleman {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    position: relative;
+  }
+
+  .reg {
+    font-size: 0.5rem;
+    position: absolute;
+    top: 2px;
+    right: -10px;
+  }
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+
+  a {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    color: var(--color-white);
+    transition: color 0.3s ease;
+
+    &:hover, &.active {
+      color: var(--color-gold);
+    }
+  }
+}
+
+.nav-actions {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+
+  .action-btn {
+    background: none;
+    border: none;
+    color: var(--color-white);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+      color: var(--color-gold);
+    }
+  }
+}
+
+/* Lógica del menú desplegable del usuario */
+.user-menu-container {
+  position: relative;
+  
+  &:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: -10px;
+  background-color: var(--color-black);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 180px;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+
+  a {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--color-white);
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--color-gold);
+    }
+
+    &.logout {
+      color: var(--color-silver);
+      &:hover {
+        color: var(--color-magenta);
+      }
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 0.5rem 0;
+  }
+
+  /* Nombre del usuario logueado, arriba de todo en el menú */
+  .dropdown-user {
+    padding: 0.7rem 1.5rem 0.2rem 1.5rem;
+    font-family: var(--font-main);
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 'Cerrar sesión' es un <a> sin href (dispara una acción), así que el cursor
+     de mano hay que pedirlo explícitamente. */
+  a.logout {
+    cursor: pointer;
+  }
+}
+
+/* Punto dorado sobre el ícono cuando hay sesión iniciada */
+.action-btn.logueado {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-gold);
+  }
+}

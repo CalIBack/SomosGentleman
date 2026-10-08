@@ -1,0 +1,199 @@
+<section class="detail-container" *ngIf="producto && !cargando">
+
+  <a routerLink="/productos" class="back-link">‹ Volver al catálogo</a>
+
+  <!-- BLOQUE SUPERIOR: GALERÍA + COMPRA -->
+  <div class="detail-main">
+
+    <!-- GALERÍA -->
+    <div class="gallery">
+      <div class="main-image">
+        <img [src]="imagenActiva" [alt]="producto.nombre">
+        <span class="sale-badge" *ngIf="tieneDescuento">{{ textoDescuento }}</span>
+      </div>
+
+      <div class="thumbs" *ngIf="imagenes.length > 1">
+        <button 
+          *ngFor="let img of imagenes; let i = index"
+          class="thumb"
+          [class.active]="i === indiceActivo"
+          (click)="seleccionarImagen(i)"
+          [attr.aria-label]="'Ver imagen ' + (i + 1)">
+          <img [src]="urlImagen(img)" [alt]="producto.nombre + ' vista ' + (i + 1)">
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL DE COMPRA -->
+    <div class="purchase">
+
+      <header class="purchase-header">
+        <span class="spec-tag">REF: SG-{{ producto.id }} // {{ producto.modelo | uppercase }}</span>
+        <h1 class="product-title">{{ producto.nombre }}</h1>
+        <p class="product-subtitle">
+          {{ producto.categoria }}<span *ngIf="producto.subcategoria"> — {{ producto.subcategoria }}</span>
+        </p>
+      </header>
+
+      <div class="price-block">
+        <span class="price-old" *ngIf="tieneDescuento">${{ producto.precio | number:'1.0-0' }}</span>
+        <span class="price-final">${{ precioFinal | number:'1.0-0' }}</span>
+      </div>
+
+      <hr class="divider">
+
+      <!-- COLOR -->
+      <div class="selector-group" *ngIf="mostrarSelectorColor">
+        <span class="selector-label">Color</span>
+        <div class="color-list">
+          <a 
+            *ngFor="let v of variantesColor"
+            [routerLink]="['/productos', v.id]"
+            class="color-swatch"
+            [class.active]="v.id === producto.id"
+            [title]="v.detalle || v.nombre">
+            <img [src]="urlSwatch(v)" [alt]="v.detalle || v.nombre">
+          </a>
+        </div>
+      </div>
+
+      <!-- TALLES -->
+      <div class="selector-group" *ngIf="mostrarSelectorTalle">
+        <span class="selector-label">Talle</span>
+        <div class="talles-list">
+          <button 
+            *ngFor="let v of talles"
+            class="talle-btn"
+            [class.active]="varianteSeleccionada?.id === v.id"
+            [disabled]="v.stock < 1"
+            (click)="seleccionarTalle(v)">
+            {{ v.talle }}
+          </button>
+        </div>
+      </div>
+
+      <p class="stock-note" *ngIf="hayStock && stockSeleccionado > 0 && stockSeleccionado <= 3">
+        Últimas {{ stockSeleccionado }} unidades.
+      </p>
+      <p class="stock-note sin-stock" *ngIf="!hayStock">
+        Sin stock disponible por el momento.
+      </p>
+
+      <!-- CANTIDAD + CTA -->
+      <div class="buy-row">
+        <div class="qty-selector">
+          <button (click)="cambiarCantidad(-1)" [disabled]="cantidad <= 1" aria-label="Restar">−</button>
+          <span class="qty-value">{{ cantidad }}</span>
+          <button (click)="cambiarCantidad(1)" [disabled]="cantidad >= stockSeleccionado" aria-label="Sumar">+</button>
+        </div>
+
+        <button class="btn-add" [disabled]="!puedeComprar" (click)="agregarAlCarro()">
+          {{ hayStock ? 'Agregar al carro' : 'Sin stock' }}
+        </button>
+      </div>
+
+      <p class="carro-feedback" *ngIf="mensajeCarro">{{ mensajeCarro }}</p>
+
+    </div>
+  </div>
+
+  <!-- INFORMACIÓN: COLUMNAS SIMULTÁNEAS, SIN TABS -->
+  <section class="info-section">
+    <div class="info-block">
+      <h3 class="info-heading">Descripción</h3>
+      <p class="info-text">{{ producto.descripcion }}</p>
+      <ul class="info-meta">
+        <li><span>Modelo</span> {{ producto.modelo | titlecase }}</li>
+        <li *ngIf="producto.detalle"><span>Detalle</span> {{ producto.detalle | titlecase }}</li>
+        <li *ngIf="mostrarSelectorTalle"><span>Talles</span> {{ talles.length }} disponibles</li>
+      </ul>
+      <p class="info-note">¿Dudas sobre el calce? Escribinos por WhatsApp.</p>
+    </div>
+
+    <div class="info-block">
+      <h3 class="info-heading">Métodos de pago</h3>
+      <ul class="info-meta">
+        <li><span>Tarjeta</span> Crédito y débito, hasta 6 cuotas sin interés</li>
+        <li><span>Transferencia</span> 10% de descuento sobre el total</li>
+        <li><span>Efectivo</span> Disponible en showroom, Viamonte 1866, CABA</li>
+      </ul>
+      <p class="info-note">Envíos a todo el país.</p>
+    </div>
+  </section>
+
+  <!-- RESEÑAS -->
+  <section class="reviews-section">
+    <header class="reviews-header">
+      <h2 class="reviews-title">Reseñas</h2>
+      <div class="reviews-summary" *ngIf="resenas.length">
+        <span class="stars-static">
+          <span *ngFor="let e of estrellas" [class.filled]="e <= promedioRedondeado">★</span>
+        </span>
+        <span class="summary-text">{{ promedioCalificacion | number:'1.1-1' }} / 5 — {{ resenas.length }} opiniones</span>
+      </div>
+    </header>
+
+    <div class="review-form">
+      <span class="form-label">Dejá tu opinión</span>
+
+      <div class="stars-input">
+        <button 
+          *ngFor="let e of estrellas"
+          type="button"
+          class="star-btn"
+          [class.filled]="e <= (calificacionHover || nuevaCalificacion)"
+          (mouseenter)="calificacionHover = e"
+          (mouseleave)="calificacionHover = 0"
+          (click)="setCalificacion(e)"
+          [attr.aria-label]="e + ' estrellas'">★</button>
+      </div>
+
+      <textarea 
+        [(ngModel)]="nuevoComentario"
+        rows="3"
+        placeholder="Contanos qué te pareció la pieza..."></textarea>
+
+      <div class="form-actions">
+        <label class="file-label">
+          <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onArchivoSeleccionado($event)" hidden>
+          <span>{{ nombreArchivo || 'Adjuntar foto' }}</span>
+        </label>
+        <button type="button" class="btn-remove-file" *ngIf="nombreArchivo" (click)="quitarArchivo()">✕</button>
+
+        <button type="button" class="btn-send" [disabled]="enviandoResena" (click)="enviarResena()">
+          {{ enviandoResena ? 'Enviando...' : 'Publicar' }}
+        </button>
+      </div>
+
+      <p class="form-feedback ok" *ngIf="mensajeResena">{{ mensajeResena }}</p>
+      <p class="form-feedback error" *ngIf="errorResena">{{ errorResena }}</p>
+    </div>
+
+    <div class="reviews-list" *ngIf="resenas.length; else sinResenas">
+      <article class="review-card" *ngFor="let r of resenas">
+        <div class="review-top">
+          <span class="stars-static">
+            <span *ngFor="let e of estrellas" [class.filled]="e <= r.calificacion">★</span>
+          </span>
+          <span class="review-date">{{ r.fecha_creacion | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <p class="review-text" *ngIf="r.comentario">{{ r.comentario }}</p>
+        <img class="review-img" *ngIf="r.imagen_opcional" [src]="'http://localhost/SomosGentleman/backend/' + r.imagen_opcional" alt="Foto de la reseña">
+      </article>
+    </div>
+
+    <ng-template #sinResenas>
+      <p class="empty-reviews">Todavía no hay reseñas de esta pieza. Sé el primero.</p>
+    </ng-template>
+  </section>
+
+</section>
+
+<div class="detail-state" *ngIf="cargando">
+  <p>Cargando pieza...</p>
+</div>
+
+<div class="detail-state" *ngIf="error && !cargando">
+  <p>{{ error }}</p>
+  <a routerLink="/productos" class="back-link">‹ Volver al catálogo</a>
+</div>

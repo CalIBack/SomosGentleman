@@ -1,0 +1,163 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  width: 100%;
+}
+
+.product-card {
+  width: 100%;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(197, 175, 100, 0.25);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+  
+  &:hover {
+    border-color: var(--color-gold);
+    box-shadow: 0 0 15px rgba(197, 175, 100, 0.1); 
+  }
+
+  .card-image-wrapper {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    position: relative;
+    background-color: #111;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, var(--color-black) -2%, rgba(0,0,0,0) 40%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), filter 0.8s ease;
+      filter: contrast(1.05) saturate(0.95);
+    }
+    
+    .sale-badge {
+      position: absolute;
+      top: 1.5rem;
+      left: -0.5rem;
+      background-color: var(--color-gold);
+      color: var(--color-black);
+      padding: 0.5rem 1.5rem; 
+      font-family: var(--font-accent); 
+      font-size: 1.3rem; 
+      letter-spacing: 1px;
+      z-index: 2;
+      transform: rotate(-5deg); 
+      box-shadow: 4px 4px 12px rgba(0,0,0,0.8); 
+    }
+  }
+
+  &:hover .card-image-wrapper img {
+    transform: scale(1.08);
+    filter: contrast(1.15) saturate(1.1);
+  }
+
+  .card-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end; 
+    padding: 1rem 1.2rem 1.2rem 1.2rem; 
+    
+    .product-name {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      font-weight: 400;
+      margin: 0;
+      color: var(--color-white);
+      text-align: left;
+      max-width: 58%;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .price-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+    }
+
+    .desde-label {
+      font-family: var(--font-main);
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
+      margin-bottom: 0.1rem;
+    }
+
+    .product-price-old {
+      font-family: var(--font-main);
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.35);
+      text-decoration: line-through;
+      text-decoration-color: rgba(255, 255, 255, 0.3);
+      margin: 0 0 0.1rem 0;
+      text-align: right;
+      letter-spacing: 0.5px;
+    }
+    
+    .product-price {
+      font-family: var(--font-main);
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--color-gold); 
+      margin: 0;
+      text-align: right;
+      margin-bottom: 0.15rem; 
+    }
+  }
+}
+
+/* --- CARD COMPACTA --- */
+:host(.is-compact) {
+  .card-image-wrapper .sale-badge {
+    top: 1rem;
+    left: -0.4rem;
+    padding: 0.35rem 1rem;
+    font-size: 1rem;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
+  }
+
+  .card-info {
+    padding: 0.85rem 1rem 1rem 1rem;
+
+    .product-name {
+      font-size: 1rem;
+    }
+
+    .desde-label {
+      font-size: 0.55rem;
+    }
+
+    .product-price-old {
+      font-size: 0.75rem;
+    }
+
+    .product-price {
+      font-size: 1.15rem;
+    }
+  }
+}

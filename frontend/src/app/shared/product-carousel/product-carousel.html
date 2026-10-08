@@ -1,0 +1,18 @@
+<div class="carousel-wrapper">
+  
+  <button class="carousel-btn prev" (click)="scroll(-1)" *ngIf="productos.length > 3">
+    &#10094;
+  </button>
+
+  <div class="product-carousel" #carouselContainer>
+    <app-product-card 
+      *ngFor="let producto of productos" 
+      [producto]="producto">
+    </app-product-card>
+  </div>
+
+  <button class="carousel-btn next" (click)="scroll(1)" *ngIf="productos.length > 3">
+    &#10095;
+  </button>
+
+</div>

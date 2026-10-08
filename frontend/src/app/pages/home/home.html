@@ -1,0 +1,147 @@
+<main class="home-container">
+
+  <!-- 1. HERO BANNER -->
+  <section class="hero-section">
+    <div class="hero-frame">
+      <img src="assets/images/pages/home/Hero1.png" alt="Campaña Somos Gentleman" class="hero-image">
+      <div class="hero-overlay">
+        <h1 class="hero-title">Showroom Exclusivo</h1>
+        <a routerLink="/contacto" class="btn-primary">Agenda tu cita</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. CATEGORÍA: OFERTAS (SALE) -->
+  <section class="category-section">
+    <div class="category-header">
+      <h2 class="category-title">For Sale</h2>
+      <p class="category-subtitle">Rebeldia ante el mercado.</p>
+    </div>
+    <app-product-carousel [productos]="sales"></app-product-carousel>
+  </section>
+
+  <!-- 3. CATEGORÍA: ZAPATOS -->
+  <section class="category-section">
+    <div class="category-header">
+      <h2 class="category-title">Calzado</h2>
+      <p class="category-subtitle">Pisada firme, huella inborrable.</p>
+    </div>
+    <app-product-carousel [productos]="zapatos"></app-product-carousel>
+  </section>
+
+  <!-- 4. CATEGORÍA: PIEZAS ÚNICAS -->
+  <section class="category-section">
+    <div class="category-header">
+      <h2 class="category-title">Piezas Únicas</h2>
+      <p class="category-subtitle">No aptas para el estándar.</p>
+    </div>
+    <app-product-carousel [productos]="piezasUnicas"></app-product-carousel>
+  </section>
+
+  <!-- 5. ENLACES DESTACADOS (CUADRADOS) -->
+  <section class="square-links-section">
+    <a routerLink="/productos" [queryParams]="{ categoria: 'ACCESORIOS' }" class="square-link">
+      <img src="assets/images/pages/home/accesorios.png" alt="Accesorios">
+      <h3 class="link-title">#ACCESORIOS</h3>
+    </a>
+    <a routerLink="/productos" [queryParams]="{ categoria: 'CAMISAS' }" class="square-link">
+      <img src="assets/images/pages/home/camisas.png" alt="Camisas">
+      <h3 class="link-title">#CAMISAS</h3>
+    </a>
+  </section>
+
+ <!-- 6. BANNER DE SASTRERÍA (ESTILO ATELIER / BESPOKE) -->
+  <section class="tailoring-section">
+    <div class="tailoring-content">
+      <div class="tailoring-meta-header">
+        <span class="tailoring-tag-tech">BESPOKE SERVICE // CRAFTED BY HAND</span>
+        <span class="tailoring-spec-code">SPEC: 2026-N042</span>
+      </div>
+
+      <h2 class="tailoring-title">Sastrería a Medida</h2>
+      
+      <div class="tailoring-chalk-box">
+        <span class="strikethrough-text">Talle estándar</span>
+        <p class="tailoring-accent">Diseñamos tu próximo outfit exclusivo.</p>
+      </div>
+
+      <p class="tailoring-desc">
+        Olvídate de las reglas de serie. Confeccionamos piezas únicas trazadas desde cero, adaptadas a tu cuerpo y a tu rebeldía.
+      </p>
+
+      <!-- Micro-especificaciones técnicas de confección -->
+      <div class="tailoring-specs-grid">
+        <div class="spec-item">
+          <span class="spec-label">TEJIDOS</span>
+          <span class="spec-value">Super 130's Wool & Silk</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">BOTONES</span>
+          <span class="spec-value">Asta Natural / Nácar</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">ACABADO</span>
+          <span class="spec-value">Hilván a Mano</span>
+        </div>
+      </div>
+      
+      <div class="tailoring-cta-wrapper">
+        <a routerLink="/contacto" [queryParams]="{ tipo: 'sastreria_medida' }" class="btn-gold btn-garment-tag">Agenda tu cita</a>
+        <span class="tailoring-limit-badge">Atención personalizada</span>
+      </div>
+    </div>
+
+    <div class="tailoring-image-wrapper">
+      <div class="image-frame">
+        <img src="assets/images/pages/home/tailoring.png" alt="Sastrería a medida Somos Gentleman">
+        
+        <!-- Marcadores técnicos y etiquetas flotantes -->
+        <div class="tailor-measure-mark mark-pattern">PATTERN #042 // CUT</div>
+        <div class="tailor-measure-mark mark-lapel">SOLAPA // HILO DE SEDA</div>
+        <div class="tailor-measure-mark mark-size">42R // 100cm</div>
+        <div class="tailor-measure-mark mark-craft">+ CORTADO A MANO</div>
+      </div>
+    </div>
+  </section>
+
+<!-- 7. FOOTER COMPACTO (3 COLUMNAS) -->
+  <footer class="main-footer">
+    <div class="footer-grid">
+      
+      <!-- Columna 1: Contacto -->
+      <div class="footer-col footer-contact">
+        <h3 class="col-title">Contacto</h3>
+        <p><span class="icon">✉</span> somosgentleman@gmail.com</p>
+        <p><span class="icon">📍</span> Viamonte 1866, CABA</p>
+        <p><span class="icon">💬</span> +54 9 11 5579 7245</p>
+      </div>
+
+      <!-- Columna 2: Marca y Redes (PNG) -->
+      <div class="footer-col footer-brand-center">
+        <img src="assets/images/pages/home/footer.png" alt="Rebeldes con Estilo" class="footer-stamp-img">
+        <div class="social-links">
+          <a href="https://instagram.com/somosgentleman" target="_blank" rel="noopener" aria-label="Instagram">IG</a>
+          <a href="https://facebook.com/fltrajes" target="_blank" rel="noopener" aria-label="Facebook">FB</a>
+          <a href="https://wa.me/5491155797245" target="_blank" rel="noopener" aria-label="WhatsApp">WA</a>
+        </div>
+      </div>
+
+      <!-- Columna 3: Navegación -->
+      <div class="footer-col footer-nav">
+        <h3 class="col-title">Navegación</h3>
+        <a routerLink="/">Inicio</a>
+        <a routerLink="/productos">Productos</a>
+        <a routerLink="/contacto" [queryParams]="{ tipo: 'sastreria_medida' }">Sastrería a Medida</a>
+        <a routerLink="/lookbooks">Lookbooks</a>
+        <a routerLink="/contacto" fragment="consulta">Contacto</a>
+      </div>
+
+    </div>
+
+    <!-- Sub-footer con Copyright -->
+    <div class="footer-bottom">
+      <p class="footer-copy">&copy; 2026 SOMOS GENTLEMAN&deg; &mdash; Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+</main>

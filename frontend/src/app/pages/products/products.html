@@ -1,0 +1,66 @@
+<section class="catalog-container">
+
+  <!-- NAV SUPERIOR MINIMALISTA -->
+  <header class="catalog-nav">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        placeholder="BUSCAR..."
+        aria-label="Buscar producto"
+      />
+    </div>
+
+    <div class="category-indicator">
+      <span>{{ categoriaActiva }}</span>
+      <span *ngIf="subcategoriaActiva !== 'TODAS'"> / {{ subcategoriaActiva }}</span>
+    </div>
+
+    <button class="menu-toggle-btn" (click)="toggleCategoryMenu()" [class.active]="isCategoryMenuOpen">
+      <span class="btn-text">FILTRAR</span>
+      <div class="hamburger-icon">
+        <span></span>
+        <span></span>
+      </div>
+    </button>
+  </header>
+
+  <!-- DESPLEGABLE DE CATEGORÍAS -->
+  <div class="categories-overlay" [class.open]="isCategoryMenuOpen">
+    <nav class="categories-list">
+      <button 
+        *ngFor="let cat of categorias" 
+        [class.active]="cat === categoriaActiva"
+        (click)="seleccionarCategoria(cat)">
+        {{ cat }}
+      </button>
+    </nav>
+  </div>
+
+  <!-- BARRA DE SUBCATEGORÍAS DINÁMICAS -->
+  <nav class="subcategories-bar" *ngIf="subcategoriasDisponibles.length > 1">
+    <button 
+      *ngFor="let subcat of subcategoriasDisponibles"
+      [class.active]="subcat === subcategoriaActiva"
+      (click)="seleccionarSubcategoria(subcat)">
+      {{ subcat }}
+    </button>
+  </nav>
+
+  <!-- GRID DE PRODUCTOS -->
+  <main class="products-grid" *ngIf="productosFiltrados.length > 0; else noProducts">
+    <app-product-card 
+      *ngFor="let producto of productosFiltrados" 
+      [producto]="producto"
+      [compacta]="true">
+    </app-product-card>
+  </main>
+
+  <ng-template #noProducts>
+    <div class="empty-state">
+      <p>NO HAY PRODUCTOS DISPONIBLES EN ESTA SELECCIÓN.</p>
+    </div>
+  </ng-template>
+
+</section>

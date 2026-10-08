@@ -1,0 +1,79 @@
+<div
+  #contenedor
+  class="grilla"
+  [class.editable]="editable()"
+  [class.miniatura]="miniatura()"
+  [class.recibiendo]="recibiendoArchivos()"
+  [class.con-arrastre]="arrastre() !== null"
+  [style.height.px]="alto()"
+  (dragover)="alPasarArchivos($event)"
+  (dragleave)="alSalirArchivos($event)"
+  (drop)="alSoltarArchivos($event)">
+
+  <!-- Recuadro punteado: dónde va a quedar la foto que se está moviendo -->
+  @if (arrastre()?.modo === 'mover' && destino(); as d) {
+    <div
+      class="destino"
+      [style.width.px]="anchoDe(d)"
+      [style.height.px]="altoDe(d)"
+      [style.transform]="'translate(' + d.x * paso() + 'px, ' + d.y * paso() + 'px)'">
+    </div>
+  }
+
+  @for (foto of mostradas(); track foto.id) {
+    <figure
+      class="foto"
+      [class.arrastrando]="arrastre()?.id === foto.id"
+      [class.subiendo]="foto.subiendo"
+      [style.width.px]="anchoDe(foto)"
+      [style.height.px]="altoDe(foto)"
+      [style.transform]="transformDe(foto)"
+      (pointerdown)="iniciarMovimiento($event, foto)"
+      (click)="abrir(foto)">
+
+      <img [src]="src(foto)" alt="" draggable="false" loading="lazy">
+
+      @if (foto.subiendo) {
+        <span class="estado-subida">Subiendo…</span>
+      }
+
+      @if (redimensionando(foto)) {
+        <span class="medida">{{ porcentaje(foto.w) }} · {{ foto.h }} fila{{ foto.h > 1 ? 's' : '' }}</span>
+      }
+
+      @if (editable()) {
+        <button
+          type="button"
+          class="quitar"
+          aria-label="Quitar foto"
+          (pointerdown)="$event.stopPropagation()"
+          (click)="quitar(foto.id)">×</button>
+
+        <span
+          class="tirador"
+          title="Arrastrá para cambiar el tamaño"
+          (pointerdown)="iniciarRedimension($event, foto)">
+        </span>
+      }
+    </figure>
+  }
+
+  @if (editable() && fotos().length === 0) {
+    <div class="vacio">
+      <span class="vacio-titulo">Soltá tus fotos acá</span>
+      <span class="vacio-texto">JPG, PNG o WEBP · hasta 15 MB cada una</span>
+    </div>
+  }
+</div>
+
+<!-- Visor: la foto entera, sin el recorte de la grilla -->
+@if (fotoAbierta(); as abierta) {
+  <div class="visor" (click)="cerrar()">
+    <button type="button" class="visor-cerrar" aria-label="Cerrar" (click)="cerrar()">×</button>
+    @if (fotos().length > 1) {
+      <button type="button" class="visor-flecha izquierda" aria-label="Anterior" (click)="navegar(-1, $event)">‹</button>
+      <button type="button" class="visor-flecha derecha" aria-label="Siguiente" (click)="navegar(1, $event)">›</button>
+    }
+    <img [src]="src(abierta)" alt="" (click)="$event.stopPropagation()">
+  </div>
+}

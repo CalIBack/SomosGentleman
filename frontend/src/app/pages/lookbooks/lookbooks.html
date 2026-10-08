@@ -1,0 +1,62 @@
+<section class="lookbooks">
+
+  <header class="cabecera">
+    <div>
+      <h1 class="titulo">Lookbooks</h1>
+      <p class="bajada">rebeldes con estilo</p>
+    </div>
+    <button type="button" class="btn-crear" (click)="crear()">+ Armar un lookbook</button>
+  </header>
+
+  <nav class="pestanias">
+    <button type="button" [class.activa]="vista() === 'publicos'" (click)="cambiarVista('publicos')">Comunidad</button>
+    @if (auth.estaLogueado()) {
+      <button type="button" [class.activa]="vista() === 'mios'" (click)="cambiarVista('mios')">Mis lookbooks</button>
+      <button type="button" [class.activa]="vista() === 'compartidos'" (click)="cambiarVista('compartidos')">Compartidos conmigo</button>
+    }
+  </nav>
+
+  @if (cargando()) {
+    <p class="mensaje">Cargando…</p>
+  } @else if (error()) {
+    <p class="mensaje error">{{ error() }}</p>
+  } @else if (tarjetas().length === 0) {
+    <div class="vacio">
+      <p class="mensaje">{{ mensajeVacio() }}</p>
+      @if (vista() !== 'compartidos') {
+        <button type="button" class="btn-crear" (click)="crear()">Armar mi primer lookbook</button>
+      }
+    </div>
+  } @else {
+    <div class="galeria">
+      @for (t of tarjetas(); track t.lookbook.id) {
+        <a class="tarjeta" [routerLink]="['/lookbooks', t.lookbook.id]">
+
+          <div class="mosaico">
+            <!-- En miniatura siempre se muestra como en una compu (4 columnas): la vista "de álbum" -->
+            <app-lookbook-grid [fotos]="t.fotos" [columnasFijas]="4" [miniatura]="true" />
+          </div>
+
+          <div class="info">
+            <h2 class="info-titulo">{{ t.lookbook.titulo }}</h2>
+
+            @switch (vista()) {
+              @case ('mios') {
+                <span class="etiqueta" [class.publico]="t.lookbook.publico">
+                  {{ t.lookbook.publico ? 'Público' : 'Privado' }}
+                </span>
+              }
+              @case ('compartidos') {
+                <span class="autor">De {{ t.lookbook.autor_nombre }}</span>
+                <button type="button" class="quitar" (click)="quitarDeMiLista(t, $event)">Quitar de mi lista</button>
+              }
+              @default {
+                <span class="autor">por {{ t.lookbook.autor_nombre }}</span>
+              }
+            }
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

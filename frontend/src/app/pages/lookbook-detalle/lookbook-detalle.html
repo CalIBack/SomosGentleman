@@ -1,0 +1,48 @@
+<section class="detalle">
+
+  <a routerLink="/lookbooks" class="volver">‹ Lookbooks</a>
+
+  @if (cargando()) {
+    <p class="mensaje">Cargando…</p>
+  } @else if (noEncontrado()) {
+    <div class="no-encontrado">
+      <h1>Este lookbook no está disponible</h1>
+      <p class="mensaje">Puede que no exista, que lo hayan borrado o que sea privado.</p>
+    </div>
+  } @else if (lookbook(); as lb) {
+
+    <header class="cabecera">
+      <div>
+        <span class="sello">LOOKBOOK // {{ fecha() }}</span>
+        <h1 class="titulo">{{ lb.titulo }}</h1>
+        <p class="autor">
+          por {{ lb.autor_nombre }}
+          @if (lb.acceso === 'compartido') { <span class="etiqueta">Compartido con vos</span> }
+          @if (puedeEditar() && !lb.publico) { <span class="etiqueta">Privado</span> }
+        </p>
+      </div>
+
+      @if (puedeEditar()) {
+        <a class="btn-editar" [routerLink]="['/lookbooks', lb.id, 'editar']">Editar</a>
+      }
+    </header>
+
+    <div class="cuerpo" [class.con-notas]="lb.notas_medidas">
+      <app-lookbook-grid [fotos]="fotos()" />
+
+      @if (lb.notas_medidas) {
+        <aside class="notas">
+          <span class="notas-titulo">Notas de medidas</span>
+          <p>{{ lb.notas_medidas }}</p>
+          <span class="notas-privado">Solo las ven el autor y las personas con quienes lo compartió.</span>
+        </aside>
+      }
+    </div>
+
+    <!-- Cierre comercial: del look inspirador a la cita en el local -->
+    <div class="invitacion">
+      <p>¿Querés llevar este look a la realidad?</p>
+      <a routerLink="/contacto" [queryParams]="{ tipo: 'sastreria_medida' }" class="btn-cita">Reservá una cita de sastrería</a>
+    </div>
+  }
+</section>
