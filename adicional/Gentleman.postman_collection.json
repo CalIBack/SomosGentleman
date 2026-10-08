@@ -1,0 +1,635 @@
+{
+    "info": {
+        "_postman_id": "a1b2c3d4-e5f6-7890-1234-56789abcdef0",
+        "name": "API SOMOS GENTLEMAN",
+        "description": "Colección Definitiva: JWT, Archivos, Carrito Relacional, Stock y Reseñas.\n\nCambios recientes:\n- Se agregó la sección 'Stock' para gestionar productos_stock directamente (necesario porque TODO producto necesita al menos una fila ahí para poder venderse).\n- 'Crear Producto' ahora acepta 'variaciones_stock' en el mismo body, para no dejar el producto sin stock creado.\n- 'Restablecer Base de Datos' ahora requiere estar logueado como Admin.\n- 'Subir Imagen' ahora valida el contenido real del archivo (no solo la extensión), limita el tamaño a 15MB y comprime/redimensiona automáticamente.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "jwt_token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{jwt_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "Autenticación",
+            "item": [
+                {
+                    "name": "Login (Administrador)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if(jsonData.token) {",
+                                    "    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+                                    "    console.log(\"Sesión iniciada como ADMIN\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"admin@somosgentleman.com\",\n    \"password\": \"secret\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/login"
+                    }
+                },
+                {
+                    "name": "Login (Cliente)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if(jsonData.token) {",
+                                    "    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+                                    "    console.log(\"Sesión iniciada como CLIENTE\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"cliente@email.com\",\n    \"password\": \"secret\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/login"
+                    }
+                },
+                {
+                "name": "Login (Padrino)",
+                "event": [
+                    {
+                        "listen": "test",
+                        "script": {
+                            "exec": [
+                                "var jsonData = pm.response.json();",
+                                "if(jsonData.token) {",
+                                "    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+                                "    console.log(\"Sesión iniciada como PADRINO (cliente con un lookbook compartido)\");",
+                                "}"
+                            ],
+                            "type": "text/javascript"
+                        }
+                    }
+                ],
+                "request": {
+                    "method": "POST",
+                    "header": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "body": {
+                        "mode": "raw",
+                        "raw": "{\n    \"email\": \"padrino@email.com\",\n    \"password\": \"secret\"\n}"
+                    },
+                    "url": "http://localhost/SomosGentleman/backend/login"
+                }
+            }
+            ]
+        },
+        {
+            "name": "Archivos",
+            "item": [
+                {
+                    "name": "Subir Imagen (Logueado)",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "imagen",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/upload",
+                        "description": "Acepta jpg, png o webp (se valida el contenido real del archivo, no solo la extensión). Tamaño máximo de subida: 15MB. La imagen se redimensiona a un ancho máximo de 1600px y se recomprime automáticamente antes de guardarse."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Restablecer Base de Datos",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost/SomosGentleman/backend/restablecer",
+                "description": "Requiere estar logueado como Admin (ejecutar antes 'Login (Administrador)'). Borra y recrea la base de datos completa con los datos de prueba del dump. Pensado solo para el entorno de testing."
+            }
+        },
+        {
+            "name": "Productos",
+            "item": [
+                {
+                    "name": "Obtener todos (Público)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/productos"
+                    }
+                },
+                {
+                    "name": "Obtener por ID (Público)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/productos/1"
+                    }
+                },
+                {
+                    "name": "Crear (Solo Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Corbata Pique\",\n    \"descripcion\": \"Clásica corbata de pique.\",\n    \"precio\": 25000.00,\n    \"descuento\": \"10%\",\n    \"categoria\": \"accesorios\",\n    \"subcategoria\": \"corbatas\",\n    \"modelo\": \"pique\",\n    \"detalle\": \"negro\",\n    \"variante_destacada\": true,\n    \"imagen_portada\": \"1.png\",\n    \"imagenes\": [\"1.png\", \"2.png\"],\n    \"variaciones_stock\": [\n        { \"talle\": \"Único\", \"stock\": 20 }\n    ]\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/productos",
+                        "description": "IMPORTANTE: 'variaciones_stock' es opcional pero muy recomendado. Todo producto necesita al menos una fila en productos_stock para poder ser pedido (ver sección 'Stock'); si no mandás nada acá, el producto se crea igual pero con una única variante en 0 unidades, y vas a tener que cargarle stock después con 'Crear Variante de Stock'.\n\nCada item de 'variaciones_stock' acepta 'talle' (opcional, default 'Único') y 'stock' (opcional, default 0). Para un producto con talles, mandá un array con una entrada por talle, ej:\n[{\"talle\":\"39\",\"stock\":5},{\"talle\":\"40\",\"stock\":8}]"
+                    }
+                },
+                {
+                    "name": "Actualizar (Solo Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"precio\": 28000.00,\n    \"descuento\": \"15%\",\n    \"detalle\": \"azul marino\",\n    \"variante_destacada\": false\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/productos/1"
+                    }
+                },
+                {
+                    "name": "Eliminar (Solo Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "http://localhost/SomosGentleman/backend/productos/1"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Stock",
+            "item": [
+                {
+                    "name": "Obtener todos (Solo Admin)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/stock",
+                        "description": "Devuelve el listado completo de productos_stock (todas las variantes de todos los productos), útil para un panel de inventario general."
+                    }
+                },
+                {
+                    "name": "Obtener por ID (Solo Admin)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/stock/1",
+                        "description": "Devuelve una variante puntual de productos_stock (id, producto_id, talle, stock)."
+                    }
+                },
+                {
+                    "name": "Crear Variante de Stock (Solo Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"producto_id\": 1,\n    \"talle\": \"44\",\n    \"stock\": 6\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/stock",
+                        "description": "Agrega una nueva variante (talle) a un producto que ya existe. Usalo para sumar talles que no se cargaron al crear el producto, o para productos que ya existían antes de este endpoint."
+                    }
+                },
+                {
+                    "name": "Actualizar Stock (Solo Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"stock\": 12\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/stock/1",
+                        "description": "Uso típico: reponer stock de una variante puntual (ej: llegó mercadería nueva) o corregir el talle. Acepta 'talle' y/o 'stock', ambos opcionales."
+                    }
+                },
+                {
+                    "name": "Eliminar Variante de Stock (Solo Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "http://localhost/SomosGentleman/backend/stock/1",
+                        "description": "Solo se permite si esa variante nunca fue referenciada en ningún pedido (se verifica contra 'detalles' de todos los pedidos). Si ya se vendió alguna vez, la API devuelve 409 y sugiere poner stock=0 con PATCH en vez de borrar, para no romper la trazabilidad de pedidos históricos."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Usuarios",
+            "item": [
+                {
+                    "name": "Obtener todos (Solo Admin)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/usuarios"
+                    }
+                },
+                {
+                    "name": "Obtener por ID (Solo Admin)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/usuarios/1"
+                    }
+                },
+                {
+                    "name": "Crear / Registro (Público)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre_completo\": \"Nuevo Cliente\",\n    \"email\": \"nuevo@email.com\",\n    \"password\": \"secret\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/usuarios"
+                    }
+                },
+                {
+                    "name": "Actualizar (Logueado)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre_completo\": \"Cliente Actualizado\",\n    \"foto_perfil\": \"assets/images/usuarios/nueva-foto.jpg\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/usuarios/2"
+                    }
+                },
+                {
+                    "name": "Eliminar (Logueado)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "http://localhost/SomosGentleman/backend/usuarios/2"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Pedidos",
+            "item": [
+                {
+                    "name": "Obtener todos (Logueado)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/pedidos"
+                    }
+                },
+                {
+                    "name": "Crear Pedido (Logueado)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"tipo_pedido\": \"venta_estandar\",\n    \"detalles\": \"2####14\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/pedidos",
+                        "description": "No todo pedido es una 'venta' de catálogo (ej: sastrería a medida), por eso el nombre genérico.\n\nFormato de 'detalles': ids de productos_stock separados por '####'. TODO producto tiene al menos una fila en productos_stock, así que cada número ya identifica producto + variante sin ambigüedad; no hace falta indicar el producto por separado.\n\nSi 'tipo_pedido' es 'sastreria_medida', el total incluye automáticamente el recargo fijo de mano de obra (RECARGO_SASTRERIA)."
+                    }
+                },
+                {
+                    "name": "Cancelar Pedido (Logueado)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"estado\": \"cancelado\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/pedidos/2",
+                        "description": "Cualquier usuario logueado puede cancelar SU PROPIO pedido, sin importar el rol. Solo funciona si el pedido está en 'pendiente' o 'pagado' (si ya está 'en proceso', 'listo' o 'enviado', la API responde 403).\n\nSi el pedido estaba en un estado que ya había liberado stock, no vuelve a liberarlo dos veces; si no, restaura el stock reservado automáticamente."
+                    }
+                },
+                {
+                    "name": "Actualizar Estado o Tipo (Solo Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"estado\": \"en proceso\",\n    \"tipo_pedido\": \"sastreria_medida\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/pedidos/2",
+                        "description": "Exclusivo de administrador: permite poner CUALQUIER estado (no solo 'cancelado') y modificar 'tipo_pedido'.\n\nProbá este mismo request logueado como cliente ('Login (Cliente)') para verificar que el control de rol funciona: debería devolver 403, porque un cliente solo puede setear estado='cancelado' y nada más. Sirve como test de permisos sin tener que armar uno aparte."
+                    }
+                },
+                {
+                    "name": "Eliminar (Solo Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "http://localhost/SomosGentleman/backend/pedidos/2",
+                        "description": "Exclusivo de administrador. Un cliente nunca puede eliminar un pedido (para eso está 'Cancelar Pedido', vía PATCH).\n\nSolo se permite eliminar físicamente si el pedido está en estado 'pendiente' o 'cancelado'. Cualquier pedido con movimiento real ('pagado', 'en proceso', 'listo', 'enviado', 'reembolsado') se conserva como registro: para anularlo se usa PATCH para cambiar el estado, nunca se borra.\n\nSi el pedido estaba 'pendiente', el stock reservado se restaura automáticamente antes de borrar."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Lookbooks",
+            "item": [
+                {
+                    "name": "Galería Pública (Público)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/lookbooks",
+                        "description": "Devuelve solo los lookbooks marcados como públicos, sin 'notas_medidas' (son datos personales). No requiere login."
+                    }
+                },
+                {
+                    "name": "Mis Lookbooks (Logueado)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/lookbooks?vista=mios",
+                        "description": "Los lookbooks creados por el usuario logueado, públicos y privados, con sus notas. Sin token devuelve 401."
+                    }
+                },
+                {
+                    "name": "Compartidos Conmigo (Logueado)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/lookbooks?vista=compartidos",
+                        "description": "Los lookbooks que otros usuarios compartieron con el usuario logueado. Cada uno trae 'compartido_id' para poder quitarlo de la lista con DELETE /compartidos/{id}.\n\nProbalo con 'Login (Padrino)': el dump le comparte el lookbook 1."
+                    }
+                },
+                {
+                    "name": "Todos (Solo Admin)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/lookbooks?vista=todos",
+                        "description": "Todos los lookbooks del sitio, para moderación desde el panel de administración. Un cliente recibe 403."
+                    }
+                },
+                {
+                    "name": "Obtener por ID (Según permisos)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/lookbooks/1",
+                        "description": "Público: lo ve cualquiera, sin notas.\nPrivado: solo el dueño, los usuarios con quienes se compartió y el admin. Para el resto responde 404 (no 403), así no se confirma que exista.\n\nEl campo 'acceso' indica la relación: duenio, admin, compartido o publico.\n\nProbalo sin token: el lookbook 1 es privado y debe dar 404; el 2 es público y debe responder."
+                    }
+                },
+                {
+                    "name": "Crear (Logueado)",
+                    "request": {
+                        "method": "POST",
+                        "url": "http://localhost/SomosGentleman/backend/lookbooks",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"titulo\": \"Mi look de boda\",\n    \"publico\": false,\n    \"notas_medidas\": \"Hombros 46cm\",\n    \"composicion\": [\n        {\n            \"ruta\": \"assets/images/productos/zapatos/chelsea/negro/1.png\",\n            \"w\": 1,\n            \"h\": 2\n        },\n        {\n            \"ruta\": \"assets/images/productos/sacos/pana/azul/1.jpg\",\n            \"w\": 2,\n            \"h\": 1\n        },\n        {\n            \"ruta\": \"assets/images/productos/camisas/lisa/blanca/1.jpg\",\n            \"w\": 2,\n            \"h\": 1\n        }\n    ]\n}"
+                        },
+                        "description": "OBLIGATORIOS: 'titulo' (máx. 100) y 'composicion' (al menos 1 foto, máx. 40).\nOPCIONALES: 'notas_medidas', 'publico' (default false).\n\n'composicion' es la lista de fotos EN EL ORDEN DEL ÁLBUM. Cada una es {ruta, w, h}:\n- w = ancho en cuartos del álbum: 1 = 25%, 2 = 50%, 3 = 75%, 4 = 100%\n- h = alto en filas (1 a 4)\n\nNo se mandan posiciones: el frontend arma la grilla según la pantalla (4 columnas en compu, 3 en tablet, 2 en celular). Por eso el mismo lookbook se ve como álbum en cualquier dispositivo.\n\n'ruta' solo acepta lo que devuelve /upload (uploads/img_xxx.jpg) o fotos del catálogo (assets/images/productos/...). Cualquier otra cosa da 400.\n\nLa portada (imagen_inspiracion) es la primera foto."
+                    }
+                },
+                {
+                    "name": "Actualizar (Logueado)",
+                    "request": {
+                        "method": "PATCH",
+                        "url": "http://localhost/SomosGentleman/backend/lookbooks/1",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"titulo\": \"Inspiración Casamiento (final)\",\n    \"publico\": true,\n    \"composicion\": [\n        {\n            \"ruta\": \"assets/images/productos/sacos/pana/azul/1.jpg\",\n            \"w\": 4,\n            \"h\": 1\n        },\n        {\n            \"ruta\": \"assets/images/productos/zapatos/chelsea/negro/1.png\",\n            \"w\": 1,\n            \"h\": 2\n        },\n        {\n            \"ruta\": \"assets/images/productos/camisas/lisa/blanca/1.jpg\",\n            \"w\": 2,\n            \"h\": 1\n        }\n    ]\n}"
+                        },
+                        "description": "Solo el dueño o un admin. Todos los campos son opcionales.\n\nPara reordenar o cambiar tamaños se manda la 'composicion' completa en el nuevo orden.\n\nLas fotos subidas que se quitan del álbum se borran del servidor, salvo que otro lookbook, reseña o perfil las siga usando."
+                    }
+                },
+                {
+                    "name": "Eliminar (Logueado)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "http://localhost/SomosGentleman/backend/lookbooks/1",
+                        "description": "Solo el dueño o un admin. Borra también los registros de compartidos (ON DELETE CASCADE) y las fotos subidas que ya no use nadie."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Compartir Lookbooks",
+            "item": [
+                {
+                    "name": "Buscar Usuarios (Logueado)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/directorio?q=padrino",
+                        "description": "Busca usuarios registrados para compartirles un lookbook. Acepta parte del nombre o un email exacto. Mínimo 2 caracteres, máximo 8 resultados, nunca te incluye a vos.\n\nDevuelve solo id, nombre_completo y foto_perfil: no expone emails, así no sirve para juntar direcciones."
+                    }
+                },
+                {
+                    "name": "Con Quién Lo Compartí (Logueado)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/compartidos?lookbook_id=1",
+                        "description": "Lista los receptores de un lookbook. Solo el dueño o un admin."
+                    }
+                },
+                {
+                    "name": "Compartir (Logueado)",
+                    "request": {
+                        "method": "POST",
+                        "url": "http://localhost/SomosGentleman/backend/compartidos",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"lookbook_id\": 3,\n    \"usuario_receptor_id\": 1\n}"
+                        },
+                        "description": "Solo el dueño del lookbook (o un admin). Devuelve 409 si ya estaba compartido con esa persona y 400 si intentás compartirlo con su propio autor.\n\nEjemplo: logueado como 'Login (Cliente)', comparte el lookbook 3 con el admin (id 1)."
+                    }
+                },
+                {
+                    "name": "Dejar de Compartir (Logueado)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "http://localhost/SomosGentleman/backend/compartidos/1",
+                        "description": "Pueden hacerlo el dueño (deja de compartir), el receptor (lo quita de su lista) o un admin."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Reseñas",
+            "item": [
+                {
+                    "name": "Obtener todas (Público)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/resenas"
+                    }
+                },
+                {
+                    "name": "Obtener por Producto (Público)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/resenas?producto_id=1"
+                    }
+                },
+                {
+                    "name": "Crear (Logueado)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"producto_id\": 1,\n    \"calificacion\": 5,\n    \"comentario\": \"Excelente calidad, el calce es perfecto.\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/resenas"
+                    }
+                },
+                {
+                    "name": "Actualizar (Logueado)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"calificacion\": 4,\n    \"comentario\": \"Excelente calidad, pero tuve que ajustar el largo.\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/resenas/1"
+                    }
+                },
+                {
+                    "name": "Eliminar (Logueado)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "http://localhost/SomosGentleman/backend/resenas/1"
+                    }
+                }
+            ]
+        },
+        {
+        "name": "Citas",
+            "item": [
+                {
+                    "name": "Disponibilidad por Día (Público)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/disponibilidad?fecha=2026-12-15",
+                        "description": "Devuelve los turnos ocupados de ese día y la hora real del servidor ('servidor_fecha_hora'). El frontend debe usar ese valor, no el reloj del navegador, para decidir qué turnos ya pasaron.\n\nOJO: usá siempre una fecha FUTURA al probar, o no vas a ver el comportamiento real de la agenda."
+                    }
+                },
+                {
+                    "name": "Disponibilidad por Mes (Público)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/disponibilidad?mes=2026-12",
+                        "description": "Devuelve, por cada día del mes con al menos un turno ocupado, cuántos turnos tiene y si ya está completo ('lleno'). Útil para pintar el calendario sin pedir día por día.\n\nLos datos de prueba del dump se crean a partir de la fecha en que se corre /restablecer (hoy + 2 y + 3 días), así que para verlos consultá el MES ACTUAL."
+                    }
+                },
+                {
+                    "name": "Reservar Turno (Público)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre_contacto\": \"Juan Pérez\",\n    \"email_contacto\": \"juan@email.com\",\n    \"telefono_contacto\": \"1122334455\",\n    \"tipo\": \"sastreria_medida\",\n    \"fecha\": \"2026-12-15\",\n    \"hora\": \"10:00\",\n    \"aclaraciones\": \"Vengo para arreglarme para un casamiento\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/citas",
+                        "description": "No requiere login. Si hay un token válido en Authorization, la reserva queda asociada al usuario.\n\nOBLIGATORIOS: nombre_contacto, email_contacto, telefono_contacto (mínimo 8 dígitos), fecha y hora. El teléfono es obligatorio porque el turno nace como 'reservada' y el local llama a la persona antes de pasarlo a 'confirmada'.\n\n'tipo' es 'visita' o 'sastreria_medida'. 'hora' acepta '10:00' o '10:00:00', pero debe ser exactamente una de: 09:00 a 17:00, en punto. La fecha/hora se valida contra el reloj del SERVIDOR: un turno pasado devuelve 400.\n\nDevuelve 409 si el turno acaba de ser tomado por otra persona (condición de carrera resuelta por UNIQUE en la base)."
+                    }
+                },
+                {
+                    "name": "Bloquear Turnos (Solo Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"fecha\": \"2026-12-25\",\n    \"motivo\": \"Feriado - Navidad\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/bloqueos",
+                        "description": "Sin el campo 'horas', bloquea el día completo (todos los turnos de 09:00 a 17:00). Para bloquear solo algunas horas, mandá 'horas': ['09:00', '10:00']. Los turnos que ya tenían una reserva real (o ya estaban bloqueados) se listan en 'horas_ya_ocupadas' sin afectar al resto.\n\nCrea filas en 'citas' con estado='bloqueada', así que ocupan el turno igual que una reserva real.\n\nPara desbloquear, usá 'Eliminar (Solo Admin)' con el id de la fila bloqueada (buscala primero con 'Listar Todas')."
+                    }
+                },
+                {
+                    "name": "Listar Todas (Solo Admin)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/citas",
+                        "description": "Devuelve todas las citas ordenadas por fecha y hora, con los datos de contacto completos. Exclusivo de admin: el endpoint público de disponibilidad nunca expone datos personales."
+                    }
+                },
+                {
+                    "name": "Obtener por ID (Solo Admin)",
+                    "request": {
+                        "method": "GET",
+                        "url": "http://localhost/SomosGentleman/backend/citas/1",
+                        "description": "Devuelve una cita puntual con todos sus datos."
+                    }
+                },
+                {
+                    "name": "Actualizar Estado (Solo Admin)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"estado\": \"confirmada\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/citas/1",
+                        "description": "Estados válidos: reservada, confirmada, finalizada, cancelada, ausente, bloqueada.\n\nFlujo típico: la cita nace como 'reservada' y pasa a 'confirmada' cuando el local se comunica con la persona. Una cita 'cancelada' libera el turno automáticamente (deja de contar como ocupado en /disponibilidad).\n\nTambién acepta 'aclaraciones' para dejar notas internas."
+                    }
+                },
+                {
+                    "name": "Eliminar (Solo Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "http://localhost/SomosGentleman/backend/citas/1",
+                        "description": "Borra la fila definitivamente. Se usa también para desbloquear un turno que se había bloqueado con /bloqueos."
+                    }
+                }
+            ]
+        }
+    ]
+}
