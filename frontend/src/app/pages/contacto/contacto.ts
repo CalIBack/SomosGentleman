@@ -1,8 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { CitaService } from '../../services/cita';
+import { AuthService } from '../../services/auth/auth';
+import { Lookbook, LookbookService } from '../../services/lookbook';
 
 interface CeldaDia {
   dia: number;
@@ -15,7 +19,7 @@ interface CeldaDia {
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './contacto.html',
   styleUrl: './contacto.scss'
 })
@@ -80,6 +84,13 @@ export class ContactoComponent implements OnInit {
   };
   enviandoCita = false;
   citaOk = '';
+
+  // === LOOKBOOK ADJUNTO (opcional, requiere sesión) ===
+  // Los propios y los que le compartieron. Si se llega desde un lookbook
+  // (/contacto?lookbook=3) ese queda elegido.
+  lookbooksDisponibles: Lookbook[] = [];
+  lookbookId: number | null = null;
+  private lookbookPedido: number | null = null;
   citaError = '';
 
   // === FORMULARIO DE CONSULTA ===
@@ -89,7 +100,9 @@ export class ContactoComponent implements OnInit {
   constructor(
     private citaService: CitaService,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public auth: AuthService,
+    private lookbookService: LookbookService
   ) {}
 
   ngOnInit(): void {
@@ -100,7 +113,12 @@ export class ContactoComponent implements OnInit {
         this.cita.tipo = tipo;
         this.cdr.detectChanges();
       }
+      // /contacto?lookbook=3 llega desde el botón "Reservá una cita" de un lookbook
+      const lookbook = Number(params.get('lookbook'));
+      this.lookbookPedido = lookbook > 0 ? lookbook : null;
     });
+
+    this.cargarLookbooks();
 
     // Arrancamos en el mes actual según el navegador solo como punto de partida
     // visual; apenas responde el backend, todo se recalcula con su hora real.
@@ -279,6 +297,90 @@ export class ContactoComponent implements OnInit {
     this.cita.tipo = tipo;
   }
 
+  // ---------- LOOKBOOK ADJUNTO ----------
+
+  private cargarLookbooks(): void {
+    if (!this.auth.estaLogueado()) return;
+
+    // Si una de las dos listas falla, se sigue con la otra en vez de no mostrar nada
+    forkJoin([
+      this.lookbookService.listar('mios').pipe(catchError(() => of([] as Lookbook[]))),
+      this.lookbookService.listar('compartidos').pipe(catchError(() => of([] as Lookbook[])))
+    ]).subscribe(([mios, compartidos]) => {
+      this.lookbooksDisponibles = [...mios, ...compartidos.filter(c => !mios.some(m => m.id === c.id))];
+
+      const pedido = this.lookbookPedido;
+      if (pedido && this.lookbooksDisponibles.some(l => l.id === pedido)) {
+        this.lookbookId = pedido;
+      } else if (pedido) {
+        // Vino desde un lookbook público de otra persona: se agrega a la lista
+        this.lookbookService.obtener(pedido).subscribe({
+          next: lb => {
+            this.lookbooksDisponibles = [lb, ...this.lookbooksDisponibles];
+            this.lookbookId = lb.id;
+            this.cdr.detectChanges();
+          },
+          error: () => {} // no existe o es privado: simplemente no se preselecciona
+        });
+      }
+      this.cdr.detectChanges();
+    });
+  }
+
+  // El desplegable es propio, no un <select>: el menú nativo lo dibuja el
+  // sistema operativo y no se puede estilar (la opción resaltada quedaba
+  // ilegible sobre fondo claro).
+  menuLookbookAbierto = false;
+
+  alternarMenuLookbook(): void {
+    this.menuLookbookAbierto = !this.menuLookbookAbierto;
+  }
+
+  elegirLookbook(id: number | null): void {
+    this.lookbookId = id;
+    this.menuLookbookAbierto = false;
+  }
+
+  /** Texto que muestra el botón del desplegable */
+  get etiquetaLookbook(): string {
+    const lb = this.lookbookSeleccionado;
+    if (!lb) return 'No adjuntar';
+    return this.esDeOtro(lb) ? `${lb.titulo} — de ${lb.autor_nombre}` : lb.titulo;
+  }
+
+  // Clic fuera del desplegable: se cierra. Se escucha en el documento porque
+  // el clic puede caer en cualquier parte de la página.
+  @HostListener('document:click', ['$event'])
+  alClicEnDocumento(evento: MouseEvent): void {
+    if (!this.menuLookbookAbierto) return;
+    const destino = evento.target as HTMLElement | null;
+    if (!destino?.closest('.lookbook-picker')) {
+      this.menuLookbookAbierto = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  cerrarMenuLookbook(): void {
+    if (!this.menuLookbookAbierto) return;
+    this.menuLookbookAbierto = false;
+    this.cdr.detectChanges();
+  }
+
+  get lookbookSeleccionado(): Lookbook | null {
+    return this.lookbooksDisponibles.find(l => l.id === this.lookbookId) ?? null;
+  }
+
+  /** A dónde volver después de iniciar sesión, sin perder el tipo ni el lookbook */
+  get urlVolver(): string {
+    const lookbook = this.lookbookPedido ? `&lookbook=${this.lookbookPedido}` : '';
+    return `/contacto?tipo=${this.cita.tipo}${lookbook}`;
+  }
+
+  esDeOtro(lookbook: Lookbook): boolean {
+    return lookbook.usuario_creador_id !== this.auth.usuario()?.id;
+  }
+
   // ---------- ENVÍO DE CITA ----------
 
   get puedeReservar(): boolean {
@@ -303,7 +405,8 @@ export class ContactoComponent implements OnInit {
     this.citaService.crearCita({
       ...this.cita,
       fecha: this.fechaSeleccionada,
-      hora: this.horaSeleccionada
+      hora: this.horaSeleccionada,
+      lookbook_id: this.lookbookId
     }).subscribe({
       next: () => {
         this.enviandoCita = false;

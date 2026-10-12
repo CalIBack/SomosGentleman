@@ -1526,15 +1526,21 @@ function getCitas($id = null)
     $whereSql = '';
     if (!empty($id)) {
         if ($id <= 0 || !is_numeric($id)) { mysqli_close($db); outputError(400); }
-        $idSafe = mysqli_real_escape_string($db, $id);
-        $whereSql = "WHERE id = $idSafe";
+        $idSafe = (int)$id;
+        $whereSql = "WHERE c.id = $idSafe";
     }
 
-    $result = mysqli_query($db, "SELECT * FROM citas $whereSql ORDER BY fecha, hora");
+    // LEFT JOIN: la mayoría de las citas no tienen lookbook y igual tienen que aparecer
+    $result = mysqli_query($db, "SELECT c.*, l.titulo AS lookbook_titulo
+                                 FROM citas c
+                                 LEFT JOIN lookbooks l ON l.id = c.lookbook_id
+                                 $whereSql
+                                 ORDER BY c.fecha, c.hora");
     $ret = [];
     while ($fila = mysqli_fetch_assoc($result)) {
         settype($fila['id'], 'int');
         $fila['usuario_id'] = $fila['usuario_id'] !== null ? (int) $fila['usuario_id'] : null;
+        $fila['lookbook_id'] = $fila['lookbook_id'] !== null ? (int) $fila['lookbook_id'] : null;
         $ret[] = $fila;
     }
     mysqli_free_result($result);
@@ -1551,7 +1557,7 @@ function postCitas()
     $db = conectarBD();
     $datos = getJsonData();
 
-        // Los tres datos de contacto son obligatorios: el turno nace como 'reservada'
+    // Los tres datos de contacto son obligatorios: el turno nace como 'reservada'
     // y solo pasa a 'confirmada' cuando el local se comunica con la persona,
     // así que sin teléfono el flujo de confirmación no puede completarse.
     if (empty($datos['nombre_contacto']) || empty($datos['email_contacto']) || empty($datos['telefono_contacto'])) {
@@ -1596,29 +1602,45 @@ function postCitas()
 
     // Si viene un JWT válido, asociamos la reserva al usuario logueado.
     // Si no hay token o es inválido, seguimos como reserva anónima: no se
-    // exige login para agendar una visita.
-    $usuarioId = "NULL";
-    $headers = apache_request_headers();
-    $authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : (isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '');
-    if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-        try {
-            $decoded = JWT::decode($matches[1], new Key(JWT_SECRET, 'HS256'));
-            $usuarioId = (int) $decoded->id;
-        } catch (Exception $e) {
-            // Token inválido o expirado: no es un error, seguimos como anónimo.
-        }
-    }
+    // exige login para agendar una visita. (usuarioOpcional() está en la
+    // sección de lookbooks y hace exactamente esto.)
+    $usuario = usuarioOpcional();
+    $usuarioId = $usuario ? (int)$usuario['id'] : "NULL";
 
-    mysqli_query($db, "INSERT INTO citas (usuario_id, nombre_contacto, email_contacto, telefono_contacto, tipo, fecha, hora, aclaraciones) 
-            VALUES ($usuarioId, '$nombre', '$email', $telefono, '$tipo', '$fecha', '$hora', $aclaraciones)");
+    // Lookbook adjunto (opcional): sirve para que el sastre vea antes de la cita
+    // qué look quiere armar el cliente. Solo se puede adjuntar uno que el usuario
+    // pueda ver: propio, compartido con él, o público.
+    $lookbookId = "NULL";
+    if (!empty($datos['lookbook_id'])) {
+        if (!$usuario) {
+            mysqli_close($db); outputError(401, "Iniciá sesión para adjuntar un lookbook a la cita.");
+        }
+        $idLookbook = (int)$datos['lookbook_id'];
+        $result = mysqli_query($db, "SELECT id, usuario_creador_id, publico FROM lookbooks WHERE id = $idLookbook");
+        $lookbook = mysqli_fetch_assoc($result);
+        mysqli_free_result($result);
+
+        if (!$lookbook || sf__accesoLookbook($db, $lookbook, $usuario) === 'ninguno') {
+            mysqli_close($db); outputError(404, "El lookbook que querés adjuntar no existe o no tenés acceso.");
+        }
+        $lookbookId = $idLookbook;
+    }
 
     // La restricción UNIQUE(fecha, hora) es la que de verdad evita que dos
     // personas reserven el mismo turno en simultáneo (condición de carrera):
     // el frontend solo oculta visualmente los turnos ocupados a modo de
     // comodidad, pero la garantía real la da la base de datos, acá.
-    if (mysqli_errno($db) === 1062) {
+    // Desde PHP 8.1 mysqli LANZA una excepción ante un error de SQL (no devuelve
+    // false), por eso el duplicado (código 1062) se atrapa con try/catch.
+    try {
+        mysqli_query($db, "INSERT INTO citas (usuario_id, lookbook_id, nombre_contacto, email_contacto, telefono_contacto, tipo, fecha, hora, aclaraciones)
+                VALUES ($usuarioId, $lookbookId, '$nombre', '$email', $telefono, '$tipo', '$fecha', '$hora', $aclaraciones)");
+    } catch (mysqli_sql_exception $e) {
         mysqli_close($db);
-        outputError(409, "Ese horario acaba de ser reservado por otra persona. Elegí otro turno.");
+        if ($e->getCode() === 1062) {
+            outputError(409, "Ese horario acaba de ser reservado por otra persona. Elegí otro turno.");
+        }
+        outputError(500, "No se pudo registrar la cita.");
     }
 
     $citaId = mysqli_insert_id($db);
@@ -1671,13 +1693,20 @@ function postBloqueos()
     foreach ($horasPedidas as $hora) {
         // El teléfono va con un guion: la columna es NOT NULL, pero un bloqueo
         // no es una persona a la que haya que llamar para confirmar.
-        mysqli_query($db, "INSERT INTO citas (usuario_id, nombre_contacto, email_contacto, telefono_contacto, tipo, fecha, hora, aclaraciones, estado) 
-            VALUES (NULL, 'Administración', 'admin@somosgentleman.com', '-', 'visita', '$fechaSafe', '$hora', '$motivo', 'bloqueada')");
         // Si ese turno ya tenía una reserva real (o ya estaba bloqueado), el UNIQUE
         // lo rechaza: lo salteamos sin frenar el resto de las horas pedidas.
-        if (mysqli_errno($db) === 1062) {
-            $yaOcupados[] = substr($hora, 0, 5);
-            continue;
+        // Desde PHP 8.1 mysqli lanza una excepción en vez de devolver false,
+        // por eso el duplicado (1062) se atrapa con try/catch.
+        try {
+            mysqli_query($db, "INSERT INTO citas (usuario_id, nombre_contacto, email_contacto, telefono_contacto, tipo, fecha, hora, aclaraciones, estado) 
+                VALUES (NULL, 'Administración', 'admin@somosgentleman.com', '-', 'visita', '$fechaSafe', '$hora', '$motivo', 'bloqueada')");
+        } catch (mysqli_sql_exception $e) {
+            if ($e->getCode() === 1062) {
+                $yaOcupados[] = substr($hora, 0, 5);
+                continue;
+            }
+            mysqli_close($db);
+            outputError(500, "No se pudo procesar el bloqueo.");
         }
         $bloqueados[] = substr($hora, 0, 5);
     }
@@ -1707,7 +1736,7 @@ function patchCitas($id)
     mysqli_free_result($check);
 
     $datos = getJsonData();
-    $estadosValidos = ['reservada', 'confirmada', 'finalizada', 'cancelada', 'ausente'];
+    $estadosValidos = ['reservada', 'confirmada', 'finalizada', 'cancelada', 'ausente', 'bloqueada'];
     $updates = [];
 
     if (isset($datos['estado'])) {

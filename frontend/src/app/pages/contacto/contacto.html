@@ -118,6 +118,71 @@
         <input id="cita-tel" type="tel" [(ngModel)]="cita.telefono_contacto" placeholder="11 2233 4455">
       </div>
 
+      <!-- Lookbook de inspiración (opcional): el sastre lo ve antes de la cita -->
+      <div class="field full">
+        <span class="field-label">Lookbook de inspiración</span>
+
+        <ng-container *ngIf="auth.estaLogueado(); else sinSesionLookbook">
+          <ng-container *ngIf="lookbooksDisponibles.length; else sinLookbooks">
+
+            <!-- Desplegable propio: el <select> nativo abre un menú que dibuja el
+                 sistema operativo y no se puede estilar. -->
+            <div class="lookbook-picker" [class.abierto]="menuLookbookAbierto">
+              <button
+                type="button"
+                class="picker-btn"
+                aria-haspopup="listbox"
+                [attr.aria-expanded]="menuLookbookAbierto"
+                (click)="alternarMenuLookbook()">
+                <span class="picker-valor">{{ etiquetaLookbook }}</span>
+                <span class="picker-flecha" aria-hidden="true"></span>
+              </button>
+
+              <ul class="picker-menu" role="listbox" *ngIf="menuLookbookAbierto">
+                <li>
+                  <button
+                    type="button"
+                    role="option"
+                    [attr.aria-selected]="lookbookId === null"
+                    [class.elegido]="lookbookId === null"
+                    (click)="elegirLookbook(null)">
+                    <span class="opcion-titulo">No adjuntar</span>
+                  </button>
+                </li>
+                <li *ngFor="let lb of lookbooksDisponibles">
+                  <button
+                    type="button"
+                    role="option"
+                    [attr.aria-selected]="lookbookId === lb.id"
+                    [class.elegido]="lookbookId === lb.id"
+                    (click)="elegirLookbook(lb.id)">
+                    <span class="opcion-titulo">{{ lb.titulo }}</span>
+                    <span class="opcion-autor" *ngIf="esDeOtro(lb)">de {{ lb.autor_nombre }}</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <p class="nota-lookbook" *ngIf="lookbookSeleccionado as lb">
+              El sastre lo va a ver antes de tu cita.
+              <a [routerLink]="['/lookbooks', lb.id]" target="_blank">Ver lookbook</a>
+            </p>
+          </ng-container>
+
+          <ng-template #sinLookbooks>
+            <p class="nota-lookbook">
+              Todavía no tenés lookbooks. <a routerLink="/lookbooks/nuevo">Armá uno</a> con fotos de lo que te inspira y adjuntalo acá.
+            </p>
+          </ng-template>
+        </ng-container>
+
+        <ng-template #sinSesionLookbook>
+          <p class="nota-lookbook">
+            <a routerLink="/login" [queryParams]="{ volverA: urlVolver }">Iniciá sesión</a> para adjuntar uno de tus lookbooks (opcional).
+          </p>
+        </ng-template>
+      </div>
+
       <div class="field full">
         <label class="field-label" for="cita-notas">Aclaraciones</label>
         <textarea id="cita-notas" rows="3" [(ngModel)]="cita.aclaraciones" 

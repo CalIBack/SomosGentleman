@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `lookbooks` (
     `fecha_actualizacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (`usuario_creador_id`) REFERENCES `usuarios`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
- 
+
 -- Tabla de Lookbooks Compartidos
 -- El UNIQUE impide compartir el mismo lookbook dos veces con la misma persona.
 CREATE TABLE IF NOT EXISTS `lookbooks_compartidos` (
@@ -113,9 +113,13 @@ CREATE TABLE IF NOT EXISTS `lookbooks_compartidos` (
     FOREIGN KEY (`usuario_receptor_id`) REFERENCES `usuarios`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Tabla de Citas
+-- lookbook_id: lookbook adjunto por el cliente (opcional). Si el lookbook se
+-- borra, la cita sigue existiendo y el campo queda en NULL (ON DELETE SET NULL).
 CREATE TABLE IF NOT EXISTS `citas` (
     `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     `usuario_id` INT UNSIGNED DEFAULT NULL,
+    `lookbook_id` INT UNSIGNED DEFAULT NULL,
     `nombre_contacto` VARCHAR(100) NOT NULL,
     `email_contacto` VARCHAR(100) NOT NULL,
     `telefono_contacto` VARCHAR(30) NOT NULL,
@@ -126,7 +130,8 @@ CREATE TABLE IF NOT EXISTS `citas` (
     `estado` ENUM('reservada', 'confirmada', 'finalizada', 'cancelada', 'ausente', 'bloqueada') DEFAULT 'reservada',
     `fecha_creacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY `turno_unico` (`fecha`, `hora`),
-    FOREIGN KEY (`usuario_id`) REFERENCES `usuarios`(`id`) ON DELETE SET NULL
+    FOREIGN KEY (`usuario_id`) REFERENCES `usuarios`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`lookbook_id`) REFERENCES `lookbooks`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -184,7 +189,7 @@ INSERT INTO `lookbooks` (`id`, `usuario_creador_id`, `titulo`, `imagen_inspiraci
 (3, 2, 'Otoño en pana', 'assets/images/productos/sacos/pana/azul/3.jpg',
  '[{"ruta":"assets/images/productos/sacos/pana/azul/3.jpg","w":2,"h":2},{"ruta":"assets/images/productos/zapatos/oxford/negro/1.png","w":1,"h":1},{"ruta":"assets/images/productos/zapatos/chelsea/choco/1.png","w":1,"h":1},{"ruta":"assets/images/productos/camisas/lisa/blanca/1.jpg","w":2,"h":1}]',
  NULL, TRUE);
- 
+
 -- El cliente (2) le comparte su lookbook privado al padrino (3)
 INSERT INTO `lookbooks_compartidos` (`lookbook_id`, `usuario_emisor_id`, `usuario_receptor_id`) VALUES
 (1, 2, 3);
@@ -194,14 +199,14 @@ INSERT INTO `lookbooks_compartidos` (`lookbook_id`, `usuario_emisor_id`, `usuari
 -- Las fechas se calculan a partir del día en que se corre el script:
 -- "CURDATE() + INTERVAL 2 DAY" significa "hoy + 2 días". Así los datos de
 -- prueba nunca quedan en el pasado, sin importar cuándo se restablezca la base.
-INSERT INTO `citas` (`usuario_id`, `nombre_contacto`, `email_contacto`, `telefono_contacto`, `tipo`, `fecha`, `hora`, `aclaraciones`, `estado`) VALUES
--- Pasado mañana a las 10: sastrería confirmada (el admin ya habló con el cliente)
-(2, 'Cliente Elegante', 'cliente@email.com', '1122334455', 'sastreria_medida', CURDATE() + INTERVAL 2 DAY, '10:00:00', 'Vengo para arreglarme para un casamiento.', 'confirmada'),
+INSERT INTO `citas` (`usuario_id`, `lookbook_id`, `nombre_contacto`, `email_contacto`, `telefono_contacto`, `tipo`, `fecha`, `hora`, `aclaraciones`, `estado`) VALUES
+-- Pasado mañana a las 10: sastrería confirmada, con su lookbook de inspiración adjunto
+(2, 1, 'Cliente Elegante', 'cliente@email.com', '1122334455', 'sastreria_medida', CURDATE() + INTERVAL 2 DAY, '10:00:00', 'Vengo para arreglarme para un casamiento.', 'confirmada'),
 -- Pasado mañana a las 15: visita reservada, pendiente de confirmar
-(3, 'Padrino Boda', 'padrino@email.com', '1199887766', 'visita', CURDATE() + INTERVAL 2 DAY, '15:00:00', NULL, 'reservada'),
+(3, NULL, 'Padrino Boda', 'padrino@email.com', '1199887766', 'visita', CURDATE() + INTERVAL 2 DAY, '15:00:00', NULL, 'reservada'),
 -- Dentro de 3 días, 9 y 10 hs: bloqueados por el dueño (no son clientes)
-(NULL, 'Administración', 'admin@somosgentleman.com', '-', 'visita', CURDATE() + INTERVAL 3 DAY, '09:00:00', 'Inventario mensual', 'bloqueada'),
-(NULL, 'Administración', 'admin@somosgentleman.com', '-', 'visita', CURDATE() + INTERVAL 3 DAY, '10:00:00', 'Inventario mensual', 'bloqueada');
+(NULL, NULL, 'Administración', 'admin@somosgentleman.com', '-', 'visita', CURDATE() + INTERVAL 3 DAY, '09:00:00', 'Inventario mensual', 'bloqueada'),
+(NULL, NULL, 'Administración', 'admin@somosgentleman.com', '-', 'visita', CURDATE() + INTERVAL 3 DAY, '10:00:00', 'Inventario mensual', 'bloqueada');
 
 -- Rehabilitar la restricción de claves foráneas
 SET FOREIGN_KEY_CHECKS = 1;

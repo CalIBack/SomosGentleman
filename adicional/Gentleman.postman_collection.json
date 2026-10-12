@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "a1b2c3d4-e5f6-7890-1234-56789abcdef0",
         "name": "API SOMOS GENTLEMAN",
-        "description": "Colección Definitiva: JWT, Archivos, Carrito Relacional, Stock y Reseñas.\n\nCambios recientes:\n- Se agregó la sección 'Stock' para gestionar productos_stock directamente (necesario porque TODO producto necesita al menos una fila ahí para poder venderse).\n- 'Crear Producto' ahora acepta 'variaciones_stock' en el mismo body, para no dejar el producto sin stock creado.\n- 'Restablecer Base de Datos' ahora requiere estar logueado como Admin.\n- 'Subir Imagen' ahora valida el contenido real del archivo (no solo la extensión), limita el tamaño a 15MB y comprime/redimensiona automáticamente.",
+        "description": "Colección Definitiva: JWT, Archivos, Carrito Relacional, Stock y Reseñas.\n\nCambios recientes:\n- Se agregó la sección 'Stock' para gestionar productos_stock directamente (necesario porque TODO producto necesita al menos una fila ahí para poder venderse).\n- 'Crear Producto' ahora acepta 'variaciones_stock' en el mismo body, para no dejar el producto sin stock creado.\n- 'Restablecer Base de Datos' ahora requiere estar logueado como Admin.\n- 'Subir Imagen' ahora valida el contenido real del archivo (no solo la extensión), limita el tamaño a 15MB y comprime/redimensiona automáticamente.\n- Las citas pueden llevar un lookbook adjunto ('lookbook_id'): ver 'Reservar Turno con Lookbook (Logueado)'.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
@@ -45,7 +45,12 @@
                     ],
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"email\": \"admin@somosgentleman.com\",\n    \"password\": \"secret\"\n}"
@@ -72,7 +77,12 @@
                     ],
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"email\": \"cliente@email.com\",\n    \"password\": \"secret\"\n}"
@@ -81,37 +91,37 @@
                     }
                 },
                 {
-                "name": "Login (Padrino)",
-                "event": [
-                    {
-                        "listen": "test",
-                        "script": {
-                            "exec": [
-                                "var jsonData = pm.response.json();",
-                                "if(jsonData.token) {",
-                                "    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
-                                "    console.log(\"Sesión iniciada como PADRINO (cliente con un lookbook compartido)\");",
-                                "}"
-                            ],
-                            "type": "text/javascript"
-                        }
-                    }
-                ],
-                "request": {
-                    "method": "POST",
-                    "header": [
+                    "name": "Login (Padrino)",
+                    "event": [
                         {
-                            "key": "Content-Type",
-                            "value": "application/json"
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if(jsonData.token) {",
+                                    "    pm.collectionVariables.set(\"jwt_token\", jsonData.token);",
+                                    "    console.log(\"Sesión iniciada como PADRINO (cliente con un lookbook compartido)\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
                         }
                     ],
-                    "body": {
-                        "mode": "raw",
-                        "raw": "{\n    \"email\": \"padrino@email.com\",\n    \"password\": \"secret\"\n}"
-                    },
-                    "url": "http://localhost/SomosGentleman/backend/login"
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"padrino@email.com\",\n    \"password\": \"secret\"\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/login"
+                    }
                 }
-            }
             ]
         },
         {
@@ -167,7 +177,12 @@
                     "name": "Crear (Solo Admin)",
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"nombre\": \"Corbata Pique\",\n    \"descripcion\": \"Clásica corbata de pique.\",\n    \"precio\": 25000.00,\n    \"descuento\": \"10%\",\n    \"categoria\": \"accesorios\",\n    \"subcategoria\": \"corbatas\",\n    \"modelo\": \"pique\",\n    \"detalle\": \"negro\",\n    \"variante_destacada\": true,\n    \"imagen_portada\": \"1.png\",\n    \"imagenes\": [\"1.png\", \"2.png\"],\n    \"variaciones_stock\": [\n        { \"talle\": \"Único\", \"stock\": 20 }\n    ]\n}"
@@ -180,7 +195,12 @@
                     "name": "Actualizar (Solo Admin)",
                     "request": {
                         "method": "PATCH",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"precio\": 28000.00,\n    \"descuento\": \"15%\",\n    \"detalle\": \"azul marino\",\n    \"variante_destacada\": false\n}"
@@ -220,7 +240,12 @@
                     "name": "Crear Variante de Stock (Solo Admin)",
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"producto_id\": 1,\n    \"talle\": \"44\",\n    \"stock\": 6\n}"
@@ -233,7 +258,12 @@
                     "name": "Actualizar Stock (Solo Admin)",
                     "request": {
                         "method": "PATCH",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"stock\": 12\n}"
@@ -273,7 +303,12 @@
                     "name": "Crear / Registro (Público)",
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"nombre_completo\": \"Nuevo Cliente\",\n    \"email\": \"nuevo@email.com\",\n    \"password\": \"secret\"\n}"
@@ -285,7 +320,12 @@
                     "name": "Actualizar (Logueado)",
                     "request": {
                         "method": "PATCH",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"nombre_completo\": \"Cliente Actualizado\",\n    \"foto_perfil\": \"assets/images/usuarios/nueva-foto.jpg\"\n}"
@@ -316,7 +356,12 @@
                     "name": "Crear Pedido (Logueado)",
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"tipo_pedido\": \"venta_estandar\",\n    \"detalles\": \"2####14\"\n}"
@@ -329,7 +374,12 @@
                     "name": "Cancelar Pedido (Logueado)",
                     "request": {
                         "method": "PATCH",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"estado\": \"cancelado\"\n}"
@@ -342,7 +392,12 @@
                     "name": "Actualizar Estado o Tipo (Solo Admin)",
                     "request": {
                         "method": "PATCH",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"estado\": \"en proceso\",\n    \"tipo_pedido\": \"sastreria_medida\"\n}"
@@ -518,7 +573,12 @@
                     "name": "Crear (Logueado)",
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"producto_id\": 1,\n    \"calificacion\": 5,\n    \"comentario\": \"Excelente calidad, el calce es perfecto.\"\n}"
@@ -530,7 +590,12 @@
                     "name": "Actualizar (Logueado)",
                     "request": {
                         "method": "PATCH",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"calificacion\": 4,\n    \"comentario\": \"Excelente calidad, pero tuve que ajustar el largo.\"\n}"
@@ -548,7 +613,7 @@
             ]
         },
         {
-        "name": "Citas",
+            "name": "Citas",
             "item": [
                 {
                     "name": "Disponibilidad por Día (Público)",
@@ -570,20 +635,48 @@
                     "name": "Reservar Turno (Público)",
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"nombre_contacto\": \"Juan Pérez\",\n    \"email_contacto\": \"juan@email.com\",\n    \"telefono_contacto\": \"1122334455\",\n    \"tipo\": \"sastreria_medida\",\n    \"fecha\": \"2026-12-15\",\n    \"hora\": \"10:00\",\n    \"aclaraciones\": \"Vengo para arreglarme para un casamiento\"\n}"
                         },
                         "url": "http://localhost/SomosGentleman/backend/citas",
-                        "description": "No requiere login. Si hay un token válido en Authorization, la reserva queda asociada al usuario.\n\nOBLIGATORIOS: nombre_contacto, email_contacto, telefono_contacto (mínimo 8 dígitos), fecha y hora. El teléfono es obligatorio porque el turno nace como 'reservada' y el local llama a la persona antes de pasarlo a 'confirmada'.\n\n'tipo' es 'visita' o 'sastreria_medida'. 'hora' acepta '10:00' o '10:00:00', pero debe ser exactamente una de: 09:00 a 17:00, en punto. La fecha/hora se valida contra el reloj del SERVIDOR: un turno pasado devuelve 400.\n\nDevuelve 409 si el turno acaba de ser tomado por otra persona (condición de carrera resuelta por UNIQUE en la base)."
+                        "description": "No requiere login. Si hay un token válido en Authorization, la reserva queda asociada al usuario.\n\nOBLIGATORIOS: nombre_contacto, email_contacto, telefono_contacto (mínimo 8 dígitos), fecha y hora. El teléfono es obligatorio porque el turno nace como 'reservada' y el local llama a la persona antes de pasarlo a 'confirmada'.\n\n'tipo' es 'visita' o 'sastreria_medida'. 'hora' acepta '10:00' o '10:00:00', pero debe ser exactamente una de: 09:00 a 17:00, en punto. La fecha/hora se valida contra el reloj del SERVIDOR: un turno pasado devuelve 400.\n\nDevuelve 409 si el turno acaba de ser tomado por otra persona (condición de carrera resuelta por UNIQUE en la base).\n\nPara adjuntar un lookbook usá 'Reservar Turno con Lookbook (Logueado)'."
+                    }
+                },
+                {
+                    "name": "Reservar Turno con Lookbook (Logueado)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre_contacto\": \"Cliente Elegante\",\n    \"email_contacto\": \"cliente@email.com\",\n    \"telefono_contacto\": \"1122334455\",\n    \"tipo\": \"sastreria_medida\",\n    \"fecha\": \"2026-12-16\",\n    \"hora\": \"11:00\",\n    \"aclaraciones\": \"Quiero armar el look del lookbook adjunto.\",\n    \"lookbook_id\": 1\n}"
+                        },
+                        "url": "http://localhost/SomosGentleman/backend/citas",
+                        "description": "Igual que 'Reservar Turno', pero con 'lookbook_id': el sastre ve antes de la cita qué look quiere armar el cliente.\n\nRequiere login (ejecutá antes 'Login (Cliente)'). Solo se puede adjuntar un lookbook que el usuario pueda ver: propio, compartido con él o público. Si no, responde 404. Sin token, responde 401.\n\nProbá el mismo request con 'Login (Padrino)': el lookbook 1 se lo compartieron, así que también puede adjuntarlo."
                     }
                 },
                 {
                     "name": "Bloquear Turnos (Solo Admin)",
                     "request": {
                         "method": "POST",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"fecha\": \"2026-12-25\",\n    \"motivo\": \"Feriado - Navidad\"\n}"
@@ -597,7 +690,7 @@
                     "request": {
                         "method": "GET",
                         "url": "http://localhost/SomosGentleman/backend/citas",
-                        "description": "Devuelve todas las citas ordenadas por fecha y hora, con los datos de contacto completos. Exclusivo de admin: el endpoint público de disponibilidad nunca expone datos personales."
+                        "description": "Devuelve todas las citas ordenadas por fecha y hora, con los datos de contacto completos. Exclusivo de admin: el endpoint público de disponibilidad nunca expone datos personales.\n\nCada cita trae 'lookbook_id' y 'lookbook_titulo' (null si no adjuntó ninguno). El lookbook se ve en /lookbooks/{lookbook_id}."
                     }
                 },
                 {
@@ -612,7 +705,12 @@
                     "name": "Actualizar Estado (Solo Admin)",
                     "request": {
                         "method": "PATCH",
-                        "header": [{"key": "Content-Type","value": "application/json"}],
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"estado\": \"confirmada\"\n}"
